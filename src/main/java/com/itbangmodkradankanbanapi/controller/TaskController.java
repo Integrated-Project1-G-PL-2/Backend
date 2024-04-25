@@ -15,7 +15,7 @@ import org.springframework.web.context.request.WebRequest;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.NoSuchElementException;
-
+@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/v1/tasks")
 public class TaskController {
@@ -29,6 +29,7 @@ public class TaskController {
 
     @GetMapping("")
     public ResponseEntity<Object> getAllTask() {
+        System.out.println("hhhh");
         return ResponseEntity.ok(listMapper.mapList(service.findAllTask(), TaskDTO.class, mapper));
     }
 
