@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import java.sql.Timestamp;
 import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -31,13 +32,12 @@ public class Task {
     @Column(length = 20)
     private TaskStatus taskStatus ;
 
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ssXXX")
-    @CreationTimestamp
-    private Timestamp createdOn;
 
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ssXXX")
+    @CreationTimestamp
+    private ZonedDateTime createdOn;
+
     @UpdateTimestamp
-    private Timestamp updatedOn;
+    private ZonedDateTime updatedOn;
 
     public enum TaskStatus {
         no_status,

@@ -29,7 +29,6 @@ public class TaskController {
 
     @GetMapping("")
     public ResponseEntity<Object> getAllTask() {
-        System.out.println("hhhh");
         return ResponseEntity.ok(listMapper.mapList(service.findAllTask(), TaskDTO.class, mapper));
     }
 
@@ -38,7 +37,7 @@ public class TaskController {
         return ResponseEntity.ok(service.findAllTask());
     }
 
-    @GetMapping("{id}")
+    @GetMapping("/{id}")
     public Task getTaskById(@PathVariable Integer id){
         return service.findTaskById(id);
     }
