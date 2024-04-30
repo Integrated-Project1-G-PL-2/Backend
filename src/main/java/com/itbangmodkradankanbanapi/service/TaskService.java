@@ -28,7 +28,7 @@ public class TaskService {
     }
 
     public List<Task> findAllTask() {
-        return repository.findAllByOOrderByCreatedOnAsc();
+        return repository.findAllByOrderByCreatedOnAsc();
     }
     @Transactional
     public Task createNewTask(Task task){
