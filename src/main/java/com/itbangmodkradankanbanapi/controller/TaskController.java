@@ -3,6 +3,8 @@ package com.itbangmodkradankanbanapi.controller;
 import com.itbangmodkradankanbanapi.dto.TaskDTO;
 import com.itbangmodkradankanbanapi.entities.Task;
 import com.itbangmodkradankanbanapi.exception.ErrorResponse;
+import com.itbangmodkradankanbanapi.exception.GlobalExceptionHandler;
+import com.itbangmodkradankanbanapi.exception.ItemNotFoundException;
 import com.itbangmodkradankanbanapi.service.ListMapper;
 import com.itbangmodkradankanbanapi.service.TaskService;
 import org.modelmapper.ModelMapper;
@@ -46,14 +48,6 @@ public class TaskController {
     public  Task createNewTask(@RequestBody Task task){
         return  service.createNewTask(task);
 
-    }
-
-    @ExceptionHandler(NoSuchElementException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseEntity<ErrorResponse> handleItemNotFound(Exception ex, WebRequest request) {
-        String id = request.getDescription(false).split("/")[4];
-        ErrorResponse er = new ErrorResponse(Timestamp.from(Instant.now()),HttpStatus.NOT_FOUND.value(),"Not Found", "Task "+ id + " dose not exist !!!!", request.getDescription(false).substring(4));
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(er);
     }
 
 }
