@@ -19,24 +19,26 @@ public class Task {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(nullable = false, length = 100)
-    private String taskTitle;
+    @Column(nullable = false, length = 100 , name = "taskTitle")
+    private String title;
 
-    @Column(length = 500)
-    private String taskDescription;
+    @Column(length = 500, name = "taskDescription")
+    private String description;
 
-    @Column(length = 30)
-    private String taskAssignees;
+    @Column(length = 30 , name = "taskAssignees")
+    private String assignees;
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 20)
-    private TaskStatus taskStatus ;
+    @Column(length = 20, name = "taskStatus")
+    private TaskStatus status ;
 
 
     @CreationTimestamp
+    @Column(name = "createdOn")
     private ZonedDateTime createdOn;
 
     @UpdateTimestamp
+    @Column(name = "updatedOn")
     private ZonedDateTime updatedOn;
 
     public enum TaskStatus {
