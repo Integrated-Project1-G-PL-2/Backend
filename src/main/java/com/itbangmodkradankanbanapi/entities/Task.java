@@ -42,10 +42,10 @@ public class Task {
     private ZonedDateTime updatedOn;
 
     public enum TaskStatus {
-        no_status,
-        to_do,
-        doing,
-        done
+        NO_STATUS,
+        TO_DO,
+        DOING,
+        DONE
     }
 
 }
