@@ -23,11 +23,12 @@ public class TaskService {
 
     public Task findTaskById(int id) throws ItemNotFoundException {
         Task task =  repository.findById(id).orElseThrow(() -> new ItemNotFoundException("Task "+ id +" does not exist !!!" ));
+
         return task;
     }
 
     public List<Task> findAllTask() {
-        return repository.findAll();
+        return repository.findAllByOOrderByCreatedOnAsc();
     }
     @Transactional
     public Task createNewTask(Task task){
