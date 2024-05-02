@@ -7,6 +7,7 @@ import com.itbangmodkradankanbanapi.exception.GlobalExceptionHandler;
 import com.itbangmodkradankanbanapi.exception.ItemNotFoundException;
 import com.itbangmodkradankanbanapi.service.ListMapper;
 import com.itbangmodkradankanbanapi.service.TaskService;
+import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -45,9 +46,20 @@ public class TaskController {
     }
 
     @PostMapping("")
-    public  Task createNewTask(@RequestBody Task task){
-        return  service.createNewTask(task);
-
+    public  ResponseEntity<TaskDTO> createNewTask(@Valid @RequestBody TaskDTO task){
+        TaskDTO createdTask = service.createNewTask(task);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdTask);
     }
 
-}
+    @DeleteMapping ("/{id}")
+    public  ResponseEntity<TaskDTO> deleteTask(@PathVariable Integer id){
+        TaskDTO task = service.deleteTask(id);
+        return ResponseEntity.status(HttpStatus.CREATED).body(task);
+    }
+
+    @PutMapping("/{id}")
+    public  ResponseEntity<TaskDTO> updateTask(@PathVariable Integer id ,@RequestBody TaskDTO taskDTO){
+        TaskDTO updatedTaskDTO = service.updateTask(id,taskDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(updatedTaskDTO);
+    }
+    }

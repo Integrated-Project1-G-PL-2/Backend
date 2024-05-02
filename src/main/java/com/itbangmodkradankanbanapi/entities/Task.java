@@ -32,13 +32,10 @@ public class Task {
     @Column(length = 20, name = "taskStatus")
     private TaskStatus status ;
 
-
-    @CreationTimestamp
-    @Column(name = "createdOn")
+    @Column(name = "createdOn" , insertable = false , updatable = false)
     private ZonedDateTime createdOn;
 
-    @UpdateTimestamp
-    @Column(name = "updatedOn")
+    @Column(name = "updatedOn", insertable = false , updatable = false)
     private ZonedDateTime updatedOn;
 
     public enum TaskStatus {
