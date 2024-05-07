@@ -28,8 +28,6 @@ public class TaskDTO {
     public void setAssignees(String assignees) {
         this.assignees = assignees == null ? null : assignees.trim();
     }
-
-
     public void setStatus(Task.TaskStatus status) {
         this.status = status == null ? Task.TaskStatus.NO_STATUS : status;
     }
