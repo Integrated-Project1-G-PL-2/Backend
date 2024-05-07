@@ -47,12 +47,12 @@ public class TaskController {
     @DeleteMapping ("/{id}")
     public  ResponseEntity<TaskDTO> deleteTask(@PathVariable Integer id){
         TaskDTO task = service.deleteTask(id);
-        return ResponseEntity.status(HttpStatus.CREATED).body(task);
+        return ResponseEntity.ok().body(task);
     }
 
     @PutMapping("/{id}")
     public  ResponseEntity<TaskDTO> updateTask(@PathVariable Integer id ,@RequestBody TaskDTO taskDTO){
         TaskDTO updatedTaskDTO = service.updateTask(id,taskDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(updatedTaskDTO);
+        return ResponseEntity.ok().body(updatedTaskDTO);
     }
     }

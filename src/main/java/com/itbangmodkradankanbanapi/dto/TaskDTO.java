@@ -6,7 +6,6 @@ import lombok.Data;
 import jakarta.validation.constraints.*;
 
 @Data
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public class TaskDTO {
     private Integer id;
     @Size(max = 100, min = 1)
@@ -19,11 +18,19 @@ public class TaskDTO {
 
 
     public void setDescription(String description) {
-        if (description != null ){
-            this.description = description.trim();
-        }else {
-            this.description = description;
-        }
+        this.description = description == null ? null : description.trim();
     }
 
+    public void setTitle(String title) {
+     this.title = title == null ? null : title.trim();
+    }
+
+    public void setAssignees(String assignees) {
+        this.assignees = assignees == null ? null : assignees.trim();
+    }
+
+
+    public void setStatus(Task.TaskStatus status) {
+        this.status = status == null ? Task.TaskStatus.NO_STATUS : status;
+    }
 }

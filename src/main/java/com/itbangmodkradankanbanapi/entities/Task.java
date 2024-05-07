@@ -29,7 +29,7 @@ public class Task {
     private String assignees;
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 20, name = "taskStatus")
+    @Column(length = 20, name = "taskStatus" )
     private TaskStatus status ;
 
     @Column(name = "createdOn" , insertable = false , updatable = false)
