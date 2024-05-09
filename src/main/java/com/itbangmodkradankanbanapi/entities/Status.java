@@ -20,10 +20,10 @@ public class Status {
 
     @NotBlank
     @Column(nullable = false, length = 50 , name = "statusName")
-    private String statusName;
+    private String name;
 
     @Column(length = 200 , name = "statusDescription")
-    private String statusDescription;
+    private String description;
 
     @JsonIgnore
     @OneToMany(mappedBy = "status")

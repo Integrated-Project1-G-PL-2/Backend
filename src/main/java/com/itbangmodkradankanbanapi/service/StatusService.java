@@ -30,7 +30,7 @@ public class StatusService {
     @Transactional
     public Status createNewStatus(Status newStatus) throws DataAccessException{
         try {
-            return repository.saveAndFlush(newStatus);
+            return repository.save(newStatus);
         } catch (DataAccessException ex) {
             String errorMessage = "Failed to create new task: " + ex.getMessage();
             throw new DataAccessException(errorMessage, ex.getCause()){};
