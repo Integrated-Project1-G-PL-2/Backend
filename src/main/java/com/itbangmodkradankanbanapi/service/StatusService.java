@@ -41,8 +41,8 @@ public class StatusService {
     public Status updateStatus(Integer id, Status status) {
         Status existingStatus = repository.findById(id).orElseThrow(
                 () -> new ItemNotFoundForUpdateAndDelete("NOT FOUND"));
-        existingStatus.setStatusName(status.getStatusName());
-        existingStatus.setStatusDescription(status.getStatusDescription());
+        existingStatus.setName(status.getName());
+        existingStatus.setDescription(status.getDescription());
         Status updateStatus = repository.save(existingStatus);
         return  updateStatus;
     }
