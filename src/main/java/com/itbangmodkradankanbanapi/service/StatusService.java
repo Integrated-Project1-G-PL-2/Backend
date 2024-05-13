@@ -2,7 +2,9 @@ package com.itbangmodkradankanbanapi.service;
 
 
 import com.itbangmodkradankanbanapi.entities.Status;
+import com.itbangmodkradankanbanapi.entities.Task;
 import com.itbangmodkradankanbanapi.entities.TaskV2;
+import com.itbangmodkradankanbanapi.exception.ItemNotFoundException;
 import com.itbangmodkradankanbanapi.exception.ItemNotFoundForUpdateAndDelete;
 import com.itbangmodkradankanbanapi.repositories.StatusRepository;
 import com.itbangmodkradankanbanapi.repositories.TaskV2Repository;
@@ -23,18 +25,29 @@ public class StatusService {
     private ModelMapper mapper;
     @Autowired
     private TaskV2Repository taskV2Repository;
+
     public List<Status> findAllStatus() {
-       return repository.findAll();
+        return repository.findAll();
     }
 
     @Transactional
-    public Status createNewStatus(Status newStatus) throws DataAccessException{
+    public Status createNewStatus(Status newStatus) throws DataAccessException {
         try {
+            newStatus.setName(newStatus.getName().trim());
+            if (newStatus.getDescription() != null) {
+                newStatus.setDescription(newStatus.getDescription().trim());
+            }
             return repository.save(newStatus);
         } catch (DataAccessException ex) {
             String errorMessage = "Failed to create new task: " + ex.getMessage();
-            throw new DataAccessException(errorMessage, ex.getCause()){};
+            throw new DataAccessException(errorMessage, ex.getCause()) {
+            };
         }
+    }
+
+    public Status findStatusById(int id) throws ItemNotFoundException {
+        Status status = repository.findById(id).orElseThrow(() -> new ItemNotFoundForUpdateAndDelete("NOT FOUND"));
+        return status;
     }
 
     @Transactional
@@ -44,12 +57,13 @@ public class StatusService {
         existingStatus.setName(status.getName());
         existingStatus.setDescription(status.getDescription());
         Status updateStatus = repository.save(existingStatus);
-        return  updateStatus;
+        return updateStatus;
     }
+
     @Transactional
-    public void deleteStatus(Integer id){
+    public void deleteStatus(Integer id) {
         System.out.println(id);
-        Status status =  repository.findById(id).orElseThrow(() -> new ItemNotFoundForUpdateAndDelete("NOT FOUND"));
+        Status status = repository.findById(id).orElseThrow(() -> new ItemNotFoundForUpdateAndDelete("NOT FOUND"));
 
         repository.delete(status);
     }

@@ -2,6 +2,7 @@ package com.itbangmodkradankanbanapi.controller;
 
 import com.itbangmodkradankanbanapi.dto.TaskDTO;
 import com.itbangmodkradankanbanapi.entities.Status;
+import com.itbangmodkradankanbanapi.entities.Task;
 import com.itbangmodkradankanbanapi.service.ListMapper;
 import com.itbangmodkradankanbanapi.service.StatusService;
 import org.modelmapper.ModelMapper;
@@ -49,5 +50,10 @@ public class StatusController {
     public ResponseEntity<Object>  deleteTask(@PathVariable Integer id , @PathVariable Integer newId){
         service.deleteStatusAndTransfer(id,newId);
         return  ResponseEntity.ok().body(new HashMap<>());
+    }
+
+    @GetMapping("/{id}")
+    public Status getStatusById(@PathVariable Integer id){
+        return service.findStatusById(id);
     }
 }
