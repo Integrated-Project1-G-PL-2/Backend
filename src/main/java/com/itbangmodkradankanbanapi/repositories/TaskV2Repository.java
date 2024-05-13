@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface TaskV2Repository extends JpaRepository<TaskV2 , Integer> {
     List<TaskV2> findAllByOrderByCreatedOnAsc();
+
 }

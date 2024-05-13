@@ -2,6 +2,7 @@ package com.itbangmodkradankanbanapi.controller;
 
 import com.itbangmodkradankanbanapi.dto.TaskDTO;
 import com.itbangmodkradankanbanapi.dto.TaskV2DTO;
+import com.itbangmodkradankanbanapi.dto.TaskV2DTOForAdd;
 import com.itbangmodkradankanbanapi.entities.Task;
 import com.itbangmodkradankanbanapi.entities.TaskV2;
 import com.itbangmodkradankanbanapi.service.ListMapper;
@@ -42,7 +43,7 @@ public class TaskV2Controller {
     }
 
     @PostMapping("")
-    public  ResponseEntity<TaskV2DTO> createNewTask(@Valid @RequestBody TaskV2DTO task){
+    public  ResponseEntity<TaskV2DTO> createNewTask(@Valid @RequestBody TaskV2DTOForAdd task){
         TaskV2DTO createdTask = service.createNewTask(task);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdTask);
     }

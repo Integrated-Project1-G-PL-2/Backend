@@ -2,10 +2,13 @@ package com.itbangmodkradankanbanapi.service;
 
 import com.itbangmodkradankanbanapi.dto.TaskDTO;
 import com.itbangmodkradankanbanapi.dto.TaskV2DTO;
+import com.itbangmodkradankanbanapi.dto.TaskV2DTOForAdd;
+import com.itbangmodkradankanbanapi.entities.Status;
 import com.itbangmodkradankanbanapi.entities.Task;
 import com.itbangmodkradankanbanapi.entities.TaskV2;
 import com.itbangmodkradankanbanapi.exception.ItemNotFoundException;
 import com.itbangmodkradankanbanapi.exception.ItemNotFoundForUpdateAndDelete;
+import com.itbangmodkradankanbanapi.repositories.StatusRepository;
 import com.itbangmodkradankanbanapi.repositories.TaskRepository;
 import com.itbangmodkradankanbanapi.repositories.TaskV2Repository;
 import org.modelmapper.ModelMapper;
@@ -23,7 +26,8 @@ public class TaskV2Service {
     private TaskV2Repository repository;
     @Autowired
     private ModelMapper mapper;
-
+    @Autowired
+    private StatusRepository statusRepository;
     public TaskV2 findTaskById(int id) throws ItemNotFoundException {
         TaskV2 task =  repository.findById(id).orElseThrow(() -> new ItemNotFoundException("Task "+ id +" does not exist !!!" ));
         return task;
@@ -36,9 +40,11 @@ public class TaskV2Service {
                 .collect(Collectors.toList());
     }
     @Transactional
-    public TaskV2DTO createNewTask(TaskV2DTO newTask) throws DataAccessException {
+    public TaskV2DTO createNewTask(TaskV2DTOForAdd newTask) throws DataAccessException {
         try {
+            Status statusObj = statusRepository.findById(newTask.getStatus()).orElseThrow(()-> new ItemNotFoundForUpdateAndDelete("NOT FOUND"));
             TaskV2 task = mapper.map(newTask, TaskV2.class);
+            task.setStatus(statusObj);
             TaskV2 savedTask = repository.saveAndFlush(task);
             return mapper.map(savedTask, TaskV2DTO.class);
         } catch (DataAccessException ex) {
@@ -69,6 +75,5 @@ public class TaskV2Service {
         updateTaskDTO.setDescription(null);
         return  updateTaskDTO;
     }
-
 }
 
