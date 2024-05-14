@@ -1,10 +1,13 @@
 package com.itbangmodkradankanbanapi.controller;
 
+import com.itbangmodkradankanbanapi.dto.StatusDTO;
 import com.itbangmodkradankanbanapi.dto.TaskDTO;
+import com.itbangmodkradankanbanapi.dto.TaskV2DTO;
 import com.itbangmodkradankanbanapi.entities.Status;
 import com.itbangmodkradankanbanapi.entities.Task;
 import com.itbangmodkradankanbanapi.service.ListMapper;
 import com.itbangmodkradankanbanapi.service.StatusService;
+import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -32,12 +35,13 @@ public class StatusController {
     }
 
     @PostMapping("")
-    public ResponseEntity<Object> createNewStatus(@RequestBody Status status) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.createNewStatus(status));
+    public ResponseEntity<Object> createNewStatus( @Valid @RequestBody StatusDTO status) {
+        StatusDTO createdStatus = service.createNewStatus(status);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdStatus);
     }
     @PutMapping("/{id}")
-    public  ResponseEntity<Status> updateTask(@PathVariable Integer id , @RequestBody Status status){
-        Status updatedStatus = service.updateStatus(id,status);
+    public  ResponseEntity<StatusDTO> updateTask(@PathVariable Integer id , @Valid @RequestBody StatusDTO status){
+        StatusDTO updatedStatus = service.updateStatus(id,status);
         return ResponseEntity.ok().body(updatedStatus);
     }
     @DeleteMapping ("/{id}")

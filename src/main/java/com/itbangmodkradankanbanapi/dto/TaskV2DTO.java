@@ -29,6 +29,5 @@ public class TaskV2DTO {
         this.assignees = assignees == null ? null : assignees.trim();
     }
 
-
 }
 

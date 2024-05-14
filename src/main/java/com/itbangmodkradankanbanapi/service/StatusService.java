@@ -1,6 +1,8 @@
 package com.itbangmodkradankanbanapi.service;
 
 
+import com.itbangmodkradankanbanapi.dto.StatusDTO;
+import com.itbangmodkradankanbanapi.dto.TaskV2DTO;
 import com.itbangmodkradankanbanapi.entities.Status;
 import com.itbangmodkradankanbanapi.entities.Task;
 import com.itbangmodkradankanbanapi.entities.TaskV2;
@@ -33,17 +35,15 @@ public class StatusService {
     }
 
     @Transactional
-    public Status createNewStatus(Status newStatus) throws DataAccessException {
+    public StatusDTO createNewStatus(StatusDTO newStatus) throws DataAccessException {
         try {
-            newStatus.setName(newStatus.getName().trim());
-            if(newStatus.getDescription() != null) {
-                newStatus.setDescription(newStatus.getDescription().trim());
-            }
             List<Status> statusList = repository.findAllByNameIgnoreCase(newStatus.getName());
             if(!statusList.isEmpty()){
-                newStatus.setName("No Status");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can not duplicate name");
             }
-            return repository.save(newStatus);
+            Status mapStatus = mapper.map(newStatus, Status.class);
+            Status savedStatus = repository.saveAndFlush(mapStatus);
+            return  mapper.map(savedStatus, StatusDTO.class);
         } catch (DataAccessException ex) {
             String errorMessage = "Failed to create new task: " + ex.getMessage();
             throw new DataAccessException(errorMessage, ex.getCause()) {
@@ -57,20 +57,16 @@ public class StatusService {
     }
 
     @Transactional
-    public Status updateStatus(Integer id, Status status) {
+    public StatusDTO updateStatus(Integer id, StatusDTO status) {
         if(id == 1){
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID cannot be 1");
         }
         Status existingStatus = repository.findById(id).orElseThrow(
                 () -> new ItemNotFoundForUpdateAndDelete("NOT FOUND"));
-        existingStatus.setName(status.getName().trim());
-        if(status.getDescription() != null){
-        existingStatus.setDescription(status.getDescription().trim());
-        }else {
-            existingStatus.setDescription(null);
-        }
+        existingStatus.setName(status.getName());
+        existingStatus.setDescription(status.getDescription());
         Status updateStatus = repository.save(existingStatus);
-        return updateStatus;
+        return mapper.map(updateStatus ,StatusDTO.class);
     }
 
     @Transactional
