@@ -1,5 +1,7 @@
 package com.itbangmodkradankanbanapi.controller;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.itbangmodkradankanbanapi.dto.TaskDTO;
 import com.itbangmodkradankanbanapi.dto.TaskV2DTO;
 import com.itbangmodkradankanbanapi.dto.TaskV2DTOForAdd;
@@ -15,6 +17,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/v2/tasks")
@@ -28,13 +32,8 @@ public class TaskV2Controller {
     private ModelMapper mapper;
 
     @GetMapping("")
-    public ResponseEntity<Object> getAllTask() {
-        return ResponseEntity.ok(listMapper.mapList(service.findAllTask(), TaskV2DTO.class, mapper));
-    }
-
-    @GetMapping("/test")
-    public ResponseEntity<Object> getAllTask1() {
-        return ResponseEntity.ok(service.findAllTask());
+    public ResponseEntity<Object> getAllTask(@RequestParam(required = false) List<String> statusName) {
+        return ResponseEntity.ok(listMapper.mapList(service.findAllTask(statusName), TaskV2DTO.class, mapper));
     }
 
     @GetMapping("/{id}")

@@ -17,6 +17,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,11 +34,16 @@ public class TaskV2Service {
         return task;
     }
 
-    public List<TaskV2> findAllTask() {
-        List<TaskV2> tasks = repository.findAllByOrderByCreatedOnAsc();
-        return tasks.stream()
-                .peek(task -> task.setDescription(null))
-                .collect(Collectors.toList());
+    public List<TaskV2> findAllTask(List<String> statusNames) {
+        List<TaskV2> taskList;
+
+        if (statusNames == null || statusNames.isEmpty()) {
+            taskList = repository.findAll();
+        } else {
+            taskList = repository.findAllByStatusNamesSorted(statusNames);
+        }
+
+        return taskList;
     }
     @Transactional
     public TaskV2DTO createNewTask(TaskV2DTOForAdd newTask) throws DataAccessException {
