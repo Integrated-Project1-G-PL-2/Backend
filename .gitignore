@@ -4,6 +4,8 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+Dockerfile
+
 ### STS ###
 .apt_generated
 .classpath
@@ -13,6 +15,7 @@ target/
 .springBeans
 .sts4-cache
 
+src/main/resources/application.properties
 ### IntelliJ IDEA ###
 .idea
 *.iws
