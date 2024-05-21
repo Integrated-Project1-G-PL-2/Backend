@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface TaskV2Repository extends JpaRepository<TaskV2 , Integer> {
     List<TaskV2> findAllByOrderByCreatedOnAsc();
-    @Query("SELECT t FROM TaskV2 t JOIN t.status s WHERE s.name IN :statusNames ORDER BY s.name ASC")
-    List<TaskV2> findAllByStatusNamesSorted(@Param("statusNames") List<String> statusNames);
+    @Query("SELECT t FROM TaskV2 t JOIN t.status s WHERE s.name IN :statusNames ORDER BY :sortBy ASC")
+    List<TaskV2> findAllByStatusNamesSorted(@Param("statusNames") List<String> statusNames ,@Param("sortBy") String sortBy);
 
 }

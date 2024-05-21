@@ -31,9 +31,9 @@ public class TaskV2Controller {
     @Autowired
     private ModelMapper mapper;
 
-    @GetMapping("")
-    public ResponseEntity<Object> getAllTask(@RequestParam(required = false) List<String> statusName) {
-        return ResponseEntity.ok(listMapper.mapList(service.findAllTask(statusName), TaskV2DTO.class, mapper));
+   @GetMapping("")
+    public ResponseEntity<Object> getAllTask(@RequestParam(required = false) List<String> filterStatuses , @RequestParam(required = false) String sortBy) {
+        return ResponseEntity.ok(listMapper.mapList(service.findAllTask(filterStatuses,sortBy), TaskV2DTO.class, mapper));
     }
 
     @GetMapping("/{id}")

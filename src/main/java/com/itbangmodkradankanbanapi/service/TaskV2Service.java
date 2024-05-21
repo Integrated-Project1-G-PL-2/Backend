@@ -34,13 +34,12 @@ public class TaskV2Service {
         return task;
     }
 
-    public List<TaskV2> findAllTask(List<String> statusNames) {
+    public List<TaskV2> findAllTask(List<String> statusNames , String  sortBy) {
         List<TaskV2> taskList;
-
         if (statusNames == null || statusNames.isEmpty()) {
             taskList = repository.findAll();
         } else {
-            taskList = repository.findAllByStatusNamesSorted(statusNames);
+            taskList = repository.findAllByStatusNamesSorted(statusNames, sortBy);
         }
 
         return taskList;
