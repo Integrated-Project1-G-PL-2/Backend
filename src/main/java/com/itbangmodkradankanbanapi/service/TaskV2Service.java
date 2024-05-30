@@ -45,17 +45,12 @@ public class TaskV2Service {
         return taskList;
     }
     @Transactional
-    public TaskV2DTO createNewTask(TaskV2DTOForAdd newTask) throws DataAccessException {
-        try {
+    public TaskV2DTO createNewTask(TaskV2DTOForAdd newTask)  {
             Status statusObj = statusRepository.findById(newTask.getStatus()).orElseThrow(()-> new ItemNotFoundForUpdateAndDelete("NOT FOUND"));
             TaskV2 task = mapper.map(newTask, TaskV2.class);
             task.setStatus(statusObj);
             TaskV2 savedTask = repository.saveAndFlush(task);
             return mapper.map(savedTask, TaskV2DTO.class);
-        } catch (DataAccessException ex) {
-            String errorMessage = "Failed to create new task: " + ex.getMessage();
-            throw new DataAccessException(errorMessage, ex.getCause()){};
-        }
     }
 
     @Transactional

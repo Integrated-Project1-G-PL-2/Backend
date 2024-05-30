@@ -35,8 +35,8 @@ public class StatusService {
     }
 
     @Transactional
-    public StatusDTO createNewStatus(StatusDTO newStatus) throws DataAccessException {
-        try {
+    public StatusDTO createNewStatus(StatusDTO newStatus)  {
+
             List<Status> statusList = repository.findAllByNameIgnoreCase(newStatus.getName());
             if(!statusList.isEmpty()){
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can not duplicate name");
@@ -44,11 +44,6 @@ public class StatusService {
             Status mapStatus = mapper.map(newStatus, Status.class);
             Status savedStatus = repository.saveAndFlush(mapStatus);
             return  mapper.map(savedStatus, StatusDTO.class);
-        } catch (DataAccessException ex) {
-            String errorMessage = "Failed to create new task: " + ex.getMessage();
-            throw new DataAccessException(errorMessage, ex.getCause()) {
-            };
-        }
     }
 
     public Status findStatusById(int id) throws ItemNotFoundException {
