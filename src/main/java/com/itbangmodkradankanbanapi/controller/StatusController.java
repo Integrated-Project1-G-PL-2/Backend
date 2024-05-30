@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 
-@CrossOrigin(origins = {"http://intproj23.sit.kmutt.ac.th", "http://localhost:5173"})
+@CrossOrigin(origins = "http://intproj23.sit.kmutt.ac.th")
 @RestController
 @RequestMapping("/v2/statuses")
 public class StatusController {
