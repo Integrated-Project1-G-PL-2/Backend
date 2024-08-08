@@ -1,4 +1,4 @@
-package com.itbangmodkradankanbanapi.v2.dto;
+package com.itbangmodkradankanbanapi.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;

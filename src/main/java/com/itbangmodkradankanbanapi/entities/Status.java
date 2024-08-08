@@ -1,4 +1,4 @@
-package com.itbangmodkradankanbanapi.v2.entities;
+package com.itbangmodkradankanbanapi.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -25,6 +25,6 @@ public class Status {
 
     @JsonIgnore
     @OneToMany(mappedBy = "status")
-    private List<TaskV2> taskV2V2s;
+    private List<Task> taskV2V2s;
 
 }

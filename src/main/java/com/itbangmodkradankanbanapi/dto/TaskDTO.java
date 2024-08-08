@@ -1,6 +1,6 @@
-package com.itbangmodkradankanbanapi.v1.dto;
+package com.itbangmodkradankanbanapi.dto;
 
-import com.itbangmodkradankanbanapi.v1.entities.Task;
+import com.itbangmodkradankanbanapi.entities.Status;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -11,9 +11,9 @@ public class TaskDTO {
     private String title;
     @Size(max = 500, min = 1)
     private String description;
-    @Size(max = 30 , min = 1)
+    @Size(max = 30, min = 1)
     private String assignees;
-    private Task.TaskStatus status ;
+    private Status status;
 
 
     public void setDescription(String description) {
@@ -21,13 +21,11 @@ public class TaskDTO {
     }
 
     public void setTitle(String title) {
-     this.title = title == null ? null : title.trim();
+        this.title = title == null ? null : title.trim();
     }
 
     public void setAssignees(String assignees) {
         this.assignees = assignees == null ? null : assignees.trim();
     }
-    public void setStatus(Task.TaskStatus status) {
-        this.status = status == null ? Task.TaskStatus.NO_STATUS : status;
-    }
+
 }

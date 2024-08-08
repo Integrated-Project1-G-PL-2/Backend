@@ -1,9 +1,9 @@
-package com.itbangmodkradankanbanapi.v2.controller;
+package com.itbangmodkradankanbanapi.controller;
 
-import com.itbangmodkradankanbanapi.v2.dto.StatusDTO;
-import com.itbangmodkradankanbanapi.v2.entities.Status;
+import com.itbangmodkradankanbanapi.dto.StatusDTO;
+import com.itbangmodkradankanbanapi.entities.Status;
 import com.itbangmodkradankanbanapi.service.ListMapper;
-import com.itbangmodkradankanbanapi.v2.service.StatusService;
+import com.itbangmodkradankanbanapi.service.StatusService;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;

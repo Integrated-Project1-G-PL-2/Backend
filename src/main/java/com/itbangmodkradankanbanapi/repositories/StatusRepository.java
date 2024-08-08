@@ -1,6 +1,6 @@
-package com.itbangmodkradankanbanapi.v2.repositories;
+package com.itbangmodkradankanbanapi.repositories;
 
-import com.itbangmodkradankanbanapi.v2.entities.Status;
+import com.itbangmodkradankanbanapi.entities.Status;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

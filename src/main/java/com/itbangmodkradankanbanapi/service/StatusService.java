@@ -1,13 +1,13 @@
-package com.itbangmodkradankanbanapi.v2.service;
+package com.itbangmodkradankanbanapi.service;
 
 
-import com.itbangmodkradankanbanapi.v2.dto.StatusDTO;
-import com.itbangmodkradankanbanapi.v2.entities.Status;
+import com.itbangmodkradankanbanapi.dto.StatusDTO;
+import com.itbangmodkradankanbanapi.entities.Status;
 import com.itbangmodkradankanbanapi.exception.ItemNotFoundException;
 import com.itbangmodkradankanbanapi.exception.ItemNotFoundForUpdateAndDelete;
-import com.itbangmodkradankanbanapi.v2.entities.TaskV2;
-import com.itbangmodkradankanbanapi.v2.repositories.StatusRepository;
-import com.itbangmodkradankanbanapi.v2.repositories.TaskV2Repository;
+import com.itbangmodkradankanbanapi.entities.Task;
+import com.itbangmodkradankanbanapi.repositories.StatusRepository;
+import com.itbangmodkradankanbanapi.repositories.TaskRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,7 +25,7 @@ public class StatusService {
     @Autowired
     private ModelMapper mapper;
     @Autowired
-    private TaskV2Repository taskV2Repository;
+    private TaskRepository taskRepository;
 
     public List<Status> findAllStatus() {
         return repository.findAll();
@@ -76,9 +76,9 @@ public class StatusService {
         Status transferStatus = repository.findById(newId)
                 .orElseThrow(() -> new ItemNotFoundForUpdateAndDelete("NOT FOUND"));
 
-        List<TaskV2> taskV2V2s = status.getTaskV2V2s();
+        List<Task> taskV2V2s = status.getTaskV2V2s();
         taskV2V2s.forEach(task -> task.setStatus(transferStatus));
-        taskV2Repository.saveAll(taskV2V2s);
+        taskRepository.saveAll(taskV2V2s);
         repository.delete(status);
     }
 

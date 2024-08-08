@@ -1,4 +1,4 @@
-package com.itbangmodkradankanbanapi.v1.entities;
+package com.itbangmodkradankanbanapi.entities;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -7,7 +7,7 @@ import java.time.ZonedDateTime;
 
 @Entity
 @Data
-@Table(name = "tasks")
+@Table(name = "tasksv2")
 public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,9 +22,9 @@ public class Task {
     @Column(length = 30 , name = "taskAssignees")
     private String assignees;
 
-    @Enumerated(EnumType.STRING)
-    @Column(length = 20, name = "taskStatus" )
-    private TaskStatus status ;
+    @ManyToOne
+    @JoinColumn(name = "taskStatus")
+    private Status status;
 
     @Column(name = "createdOn" , insertable = false , updatable = false)
     private ZonedDateTime createdOn;
@@ -32,11 +32,5 @@ public class Task {
     @Column(name = "updatedOn", insertable = false , updatable = false)
     private ZonedDateTime updatedOn;
 
-    public enum TaskStatus {
-        NO_STATUS,
-        TO_DO,
-        DOING,
-        DONE
-    }
 
 }
