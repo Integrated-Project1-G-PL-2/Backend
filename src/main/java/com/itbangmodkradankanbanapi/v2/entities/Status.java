@@ -1,13 +1,11 @@
-package com.itbangmodkradankanbanapi.entities;
+package com.itbangmodkradankanbanapi.v2.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
-import java.time.ZonedDateTime;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Data
@@ -27,6 +25,6 @@ public class Status {
 
     @JsonIgnore
     @OneToMany(mappedBy = "status")
-    private List<TaskV2> taskV2s ;
+    private List<TaskV2> taskV2V2s;
 
 }

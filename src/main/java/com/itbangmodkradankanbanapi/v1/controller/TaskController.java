@@ -1,9 +1,9 @@
-package com.itbangmodkradankanbanapi.controller;
+package com.itbangmodkradankanbanapi.v1.controller;
 
-import com.itbangmodkradankanbanapi.dto.TaskDTO;
-import com.itbangmodkradankanbanapi.entities.Task;
+import com.itbangmodkradankanbanapi.v1.dto.TaskDTO;
+import com.itbangmodkradankanbanapi.v1.entities.Task;
 import com.itbangmodkradankanbanapi.service.ListMapper;
-import com.itbangmodkradankanbanapi.service.TaskService;
+import com.itbangmodkradankanbanapi.v1.service.TaskService;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@CrossOrigin(origins = "http://intproj23.sit.kmutt.ac.th")
+
 @RestController
 @RequestMapping("/v1/tasks")
 public class TaskController {

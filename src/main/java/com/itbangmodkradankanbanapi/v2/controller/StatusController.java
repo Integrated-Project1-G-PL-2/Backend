@@ -1,12 +1,9 @@
-package com.itbangmodkradankanbanapi.controller;
+package com.itbangmodkradankanbanapi.v2.controller;
 
-import com.itbangmodkradankanbanapi.dto.StatusDTO;
-import com.itbangmodkradankanbanapi.dto.TaskDTO;
-import com.itbangmodkradankanbanapi.dto.TaskV2DTO;
-import com.itbangmodkradankanbanapi.entities.Status;
-import com.itbangmodkradankanbanapi.entities.Task;
+import com.itbangmodkradankanbanapi.v2.dto.StatusDTO;
+import com.itbangmodkradankanbanapi.v2.entities.Status;
 import com.itbangmodkradankanbanapi.service.ListMapper;
-import com.itbangmodkradankanbanapi.service.StatusService;
+import com.itbangmodkradankanbanapi.v2.service.StatusService;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,9 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
-import java.util.List;
 
-@CrossOrigin(origins = "http://intproj23.sit.kmutt.ac.th")
+
 @RestController
 @RequestMapping("/v2/statuses")
 public class StatusController {

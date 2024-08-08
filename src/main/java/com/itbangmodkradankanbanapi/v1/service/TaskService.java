@@ -1,17 +1,15 @@
-package com.itbangmodkradankanbanapi.service;
+package com.itbangmodkradankanbanapi.v1.service;
 
-import com.itbangmodkradankanbanapi.dto.TaskDTO;
-import com.itbangmodkradankanbanapi.entities.Task;
+import com.itbangmodkradankanbanapi.v1.dto.TaskDTO;
+import com.itbangmodkradankanbanapi.v1.entities.Task;
 import com.itbangmodkradankanbanapi.exception.ItemNotFoundException;
 import com.itbangmodkradankanbanapi.exception.ItemNotFoundForUpdateAndDelete;
-import com.itbangmodkradankanbanapi.repositories.TaskRepository;
+import com.itbangmodkradankanbanapi.v1.repositories.TaskRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -68,4 +66,3 @@ public class TaskService {
         return  updateTaskDTO;
     }
 }
-

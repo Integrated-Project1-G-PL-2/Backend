@@ -1,15 +1,10 @@
-package com.itbangmodkradankanbanapi.controller;
+package com.itbangmodkradankanbanapi.v2.controller;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.itbangmodkradankanbanapi.dto.TaskDTO;
-import com.itbangmodkradankanbanapi.dto.TaskV2DTO;
-import com.itbangmodkradankanbanapi.dto.TaskV2DTOForAdd;
-import com.itbangmodkradankanbanapi.entities.Task;
-import com.itbangmodkradankanbanapi.entities.TaskV2;
+import com.itbangmodkradankanbanapi.v2.dto.TaskV2DTO;
+import com.itbangmodkradankanbanapi.v2.dto.TaskDTOForAdd;
+import com.itbangmodkradankanbanapi.v2.entities.TaskV2;
 import com.itbangmodkradankanbanapi.service.ListMapper;
-import com.itbangmodkradankanbanapi.service.TaskService;
-import com.itbangmodkradankanbanapi.service.TaskV2Service;
+import com.itbangmodkradankanbanapi.v2.service.TaskV2Service;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@CrossOrigin(origins = "http://intproj23.sit.kmutt.ac.th")
+
 @RestController
 @RequestMapping("/v2/tasks")
 public class TaskV2Controller {
@@ -42,7 +37,7 @@ public class TaskV2Controller {
     }
 
     @PostMapping("")
-    public  ResponseEntity<TaskV2DTO> createNewTask(@Valid @RequestBody TaskV2DTOForAdd task){
+    public  ResponseEntity<TaskV2DTO> createNewTask(@Valid @RequestBody TaskDTOForAdd task){
         TaskV2DTO createdTask = service.createNewTask(task);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdTask);
     }
@@ -54,8 +49,8 @@ public class TaskV2Controller {
     }
 
     @PutMapping("/{id}")
-    public  ResponseEntity<TaskV2DTO> updateTask(@PathVariable Integer id ,@RequestBody TaskV2DTO taskDTO){
-        TaskV2DTO updatedTaskDTO = service.updateTask(id,taskDTO);
-        return ResponseEntity.ok().body(updatedTaskDTO);
+    public  ResponseEntity<TaskV2DTO> updateTask(@PathVariable Integer id , @RequestBody TaskV2DTO taskV2DTO){
+        TaskV2DTO updatedTaskV2DTO = service.updateTask(id, taskV2DTO);
+        return ResponseEntity.ok().body(updatedTaskV2DTO);
     }
     }
