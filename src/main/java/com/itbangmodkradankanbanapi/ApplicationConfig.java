@@ -1,6 +1,6 @@
 package com.itbangmodkradankanbanapi;
 
-import com.itbangmodkradankanbanapi.service.ListMapper;
+import com.itbangmodkradankanbanapi.db1.service.ListMapper;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -31,7 +31,9 @@ public class ApplicationConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD");
+                        .allowedOrigins(allowedOrigins)
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD")
+                        .allowCredentials(true);
             }
         };
     }

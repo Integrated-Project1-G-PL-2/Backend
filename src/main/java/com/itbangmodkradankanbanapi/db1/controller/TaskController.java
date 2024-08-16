@@ -1,10 +1,10 @@
-package com.itbangmodkradankanbanapi.controller;
+package com.itbangmodkradankanbanapi.db1.controller;
 
-import com.itbangmodkradankanbanapi.dto.TaskDTO;
-import com.itbangmodkradankanbanapi.dto.TaskDTOForAdd;
-import com.itbangmodkradankanbanapi.entities.Task;
-import com.itbangmodkradankanbanapi.service.ListMapper;
-import com.itbangmodkradankanbanapi.service.TaskService;
+import com.itbangmodkradankanbanapi.db1.dto.TaskDTO;
+import com.itbangmodkradankanbanapi.db1.dto.TaskDTOForAdd;
+import com.itbangmodkradankanbanapi.db1.entities.Task;
+import com.itbangmodkradankanbanapi.db1.service.ListMapper;
+import com.itbangmodkradankanbanapi.db1.service.TaskService;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;

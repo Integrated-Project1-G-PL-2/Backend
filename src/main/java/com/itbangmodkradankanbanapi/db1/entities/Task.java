@@ -1,4 +1,4 @@
-package com.itbangmodkradankanbanapi.entities;
+package com.itbangmodkradankanbanapi.db1.entities;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -31,6 +31,7 @@ public class Task {
 
     @Column(name = "updatedOn", insertable = false , updatable = false)
     private ZonedDateTime updatedOn;
+
 
 
 }
