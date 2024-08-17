@@ -1,6 +1,7 @@
 package com.itbangmodkradankanbanapi.db2.controller;
 
 import com.itbangmodkradankanbanapi.db2.dto.JwtRequestUser;
+import com.itbangmodkradankanbanapi.db2.entities.User;
 import com.itbangmodkradankanbanapi.db2.repositories.UserRepository;
 import com.itbangmodkradankanbanapi.db2.services.JwtTokenUtil;
 import com.itbangmodkradankanbanapi.db2.services.JwtUserDetailsService;
@@ -27,6 +28,8 @@ public class AuthenticationController {
     JwtTokenUtil jwtTokenUtil;
     @Autowired
     AuthenticationManager authenticationManager;
+    @Autowired
+    UserRepository userRepository;
     @PostMapping("/login")
     public ResponseEntity<Object> login(@RequestBody @Valid JwtRequestUser jwtRequestUser) {
         UsernamePasswordAuthenticationToken authenticationToken =
@@ -35,8 +38,8 @@ public class AuthenticationController {
         if (! authentication.isAuthenticated()) {
             throw new UsernameNotFoundException("Invalid user or password");
         }
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        String token = jwtTokenUtil.generateToken(userDetails);
+        User user =  userRepository.findByUsername(jwtRequestUser.getUserName());
+        String token = jwtTokenUtil.generateToken(user);
         return ResponseEntity.ok(token);
     }
     @GetMapping("/validate-token")
