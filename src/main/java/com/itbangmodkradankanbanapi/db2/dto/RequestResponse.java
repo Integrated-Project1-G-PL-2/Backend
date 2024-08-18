@@ -22,4 +22,5 @@ public class RequestResponse {
     private String role;
     private String password;
     private User users;
+    private String userName;
 }
