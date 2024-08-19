@@ -1,6 +1,7 @@
 package com.itbangmodkradankanbanapi.db2.controller;
 
 import com.itbangmodkradankanbanapi.db2.dto.JwtRequestUser;
+import com.itbangmodkradankanbanapi.db2.dto.JwtResponse;
 import com.itbangmodkradankanbanapi.db2.entities.User;
 import com.itbangmodkradankanbanapi.db2.repositories.UserRepository;
 import com.itbangmodkradankanbanapi.db2.services.JwtTokenUtil;
@@ -40,7 +41,8 @@ public class AuthenticationController {
         }
         User user =  userRepository.findByUsername(jwtRequestUser.getUserName());
         String token = jwtTokenUtil.generateToken(user);
-        return ResponseEntity.ok(token);
+
+        return ResponseEntity.ok(new JwtResponse(token));
     }
     @GetMapping("/validate-token")
     public ResponseEntity<Object> validateToken(@RequestHeader("Authorization") String requestTokenHeader) {
