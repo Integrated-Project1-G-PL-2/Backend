@@ -21,7 +21,7 @@ public class JwtUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String userName) throws UsernameNotFoundException {
         User user = customerRepository.findByUsername(userName);
         if (user == null) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, userName + " does not exist !!");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, userName + " does not exist !!");
         }
 //        List<GrantedAuthority> roles = new ArrayList<>();
 //        GrantedAuthority grantedAuthority = new GrantedAuthority() {
