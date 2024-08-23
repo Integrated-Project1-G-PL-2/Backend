@@ -15,13 +15,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
-@RequestMapping("/authentications")
+
 public class AuthenticationController {
     @Autowired
     JwtUserDetailsService jwtUserDetailsService;
@@ -33,14 +34,19 @@ public class AuthenticationController {
     UserRepository userRepository;
     @PostMapping("/login")
     public ResponseEntity<Object> login(@RequestBody @Valid JwtRequestUser jwtRequestUser) {
-        UsernamePasswordAuthenticationToken authenticationToken =
-                new UsernamePasswordAuthenticationToken(jwtRequestUser.getUserName(), jwtRequestUser.getPassword());
-        Authentication authentication = authenticationManager.authenticate(authenticationToken);
-        if (! authentication.isAuthenticated()) {
-            throw new UsernameNotFoundException("Invalid user or password");
+        try {
+            UsernamePasswordAuthenticationToken authenticationToken =
+                    new UsernamePasswordAuthenticationToken(jwtRequestUser.getUserName(), jwtRequestUser.getPassword());
+            Authentication authentication = authenticationManager.authenticate(authenticationToken);
+            if (!authentication.isAuthenticated()) {
+                throw new UsernameNotFoundException("Invalid user or password");
+            }
+        } catch (AuthenticationException e) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "username password incorrect" );
         }
         User user =  userRepository.findByUsername(jwtRequestUser.getUserName());
         String token = jwtTokenUtil.generateToken(user);
+
 
         return ResponseEntity.ok(new JwtResponse(token));
     }
