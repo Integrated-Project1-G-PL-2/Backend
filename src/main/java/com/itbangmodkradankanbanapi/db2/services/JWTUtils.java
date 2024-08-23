@@ -1,5 +1,6 @@
 package com.itbangmodkradankanbanapi.db2.services;
 
+import com.itbangmodkradankanbanapi.db2.entities.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,11 +26,21 @@ public class JWTUtils {
         this.Key = new SecretKeySpec(keyBytes, "HmacSHA256");
     }
 
-    public String generateToken(UserDetails userDetails){
-        return Jwts.builder()
-                .subject(userDetails.getUsername())
+    public String generateToken(User userDetails){
+        Map<String,Object> claims = new HashMap<>();
+        claims.put("name",userDetails.getName());
+        claims.put("oid",userDetails.getOid());
+        claims.put("role",userDetails.getRole());
+        claims.put("email",userDetails.getEmail());
+        return doGenerateToken(claims,userDetails.getUsername());
+    }
+    private String doGenerateToken(Map<String,Object> claims, String subject){
+        return Jwts.builder().setHeaderParam("typ","JWT")
+                .setClaims(claims)
+                .subject(subject)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .setIssuer("https://intproj23.sit.kmutt.ac.th/pl2/")
                 .signWith(Key)
                 .compact();
     }

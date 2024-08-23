@@ -25,4 +25,11 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = new  ErrorResponse(Timestamp.from(Instant.now()), HttpStatus.NOT_FOUND.value(),null, ex.getMessage() ,null, request.getRequestURI());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
     }
+
+    @ExceptionHandler(UnAuthorized.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ResponseEntity<ErrorResponse> handleUnAuthorized(UnAuthorized ex, HttpServletRequest request) {
+        ErrorResponse errorResponse = new  ErrorResponse(Timestamp.from(Instant.now()), HttpStatus.NOT_FOUND.value(),null, ex.getMessage() ,null, request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+    }
 }
