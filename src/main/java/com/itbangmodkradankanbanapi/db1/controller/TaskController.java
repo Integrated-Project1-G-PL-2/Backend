@@ -16,7 +16,7 @@ import java.util.List;
 
 
 @RestController
-@RequestMapping("/v2/tasks")
+@RequestMapping("/tasks")
 public class TaskController {
     @Autowired
     TaskService service;

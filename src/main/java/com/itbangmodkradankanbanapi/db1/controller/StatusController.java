@@ -15,7 +15,7 @@ import java.util.HashMap;
 
 
 @RestController
-@RequestMapping("/v2/statuses")
+@RequestMapping("/statuses")
 public class StatusController {
     @Autowired
     StatusService service;
