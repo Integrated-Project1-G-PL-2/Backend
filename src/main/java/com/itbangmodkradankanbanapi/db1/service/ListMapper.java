@@ -1,8 +1,7 @@
-package com.itbangmodkradankanbanapi.service;
+package com.itbangmodkradankanbanapi.db1.service;
 
-import com.itbangmodkradankanbanapi.dto.PageDTO;
+
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,12 +18,6 @@ public class ListMapper {
 
     public static ListMapper getInstance() {
         return listMapper;
-    }
-
-    public <S, T> PageDTO<T> toPageDTO(Page<S> source, Class<T> targetClass, ModelMapper modelMapper) {
-        PageDTO<T> page = modelMapper.map(source, PageDTO.class);
-        page.setContent(mapList(source.getContent(), targetClass, modelMapper));
-        return page;
     }
 
 

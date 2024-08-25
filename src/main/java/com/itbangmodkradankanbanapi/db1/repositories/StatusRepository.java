@@ -1,11 +1,11 @@
-package com.itbangmodkradankanbanapi.repositories;
+package com.itbangmodkradankanbanapi.db1.repositories;
 
-import com.itbangmodkradankanbanapi.entities.Status;
-import com.itbangmodkradankanbanapi.entities.TaskV2;
+import com.itbangmodkradankanbanapi.db1.entities.Status;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
 public interface StatusRepository extends JpaRepository<Status , Integer> {
     List<Status> findAllByNameIgnoreCase(String name);
+
 }

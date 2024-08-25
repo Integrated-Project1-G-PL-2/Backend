@@ -1,12 +1,11 @@
-package com.itbangmodkradankanbanapi.dto;
+package com.itbangmodkradankanbanapi.db1.dto;
 
-import com.itbangmodkradankanbanapi.entities.Status;
-import com.itbangmodkradankanbanapi.entities.Task;
+import com.itbangmodkradankanbanapi.db1.entities.Status;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-public class TaskV2DTO {
+public class TaskDTO {
     private Integer id;
     @Size(max = 100, min = 1)
     private String title;
@@ -30,4 +29,3 @@ public class TaskV2DTO {
     }
 
 }
-
