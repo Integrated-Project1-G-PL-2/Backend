@@ -34,16 +34,14 @@ public class AuthenticationController {
     UserRepository userRepository;
     @PostMapping("/login")
     public ResponseEntity<Object> login(@RequestBody @Valid JwtRequestUser jwtRequestUser) {
-        try {
+
             UsernamePasswordAuthenticationToken authenticationToken =
                     new UsernamePasswordAuthenticationToken(jwtRequestUser.getUserName(), jwtRequestUser.getPassword());
             Authentication authentication = authenticationManager.authenticate(authenticationToken);
             if (!authentication.isAuthenticated()) {
                 throw new UsernameNotFoundException("Invalid user or password");
             }
-        } catch (AuthenticationException e) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "username password incorrect" );
-        }
+        
         User user =  userRepository.findByUsername(jwtRequestUser.getUserName());
         String token = jwtTokenUtil.generateToken(user);
 
