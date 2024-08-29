@@ -31,7 +31,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private JwtUserDetailsService jwtUserDetailsService;
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
-
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response, FilterChain chain)
@@ -39,12 +38,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         final String requestTokenHeader = request.getHeader("Authorization");
         String username = null;
         String jwtToken = null;
-
         if (request.getServletPath().equals("/login")) {
             chain.doFilter(request, response);
             return;
         }
-
         try {
             if (requestTokenHeader != null) {
                 if (requestTokenHeader.startsWith("Bearer ")) {
@@ -66,9 +63,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     writeErrorResponse(response, HttpStatus.UNAUTHORIZED, "JWT Token does not begin with Bearer String");
                     return;
                 }
-            } else {
-            writeErrorResponse(response, HttpStatus.UNAUTHORIZED, "JWT Token not found");
-            return;
             }
 
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
