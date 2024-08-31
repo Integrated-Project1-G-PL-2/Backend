@@ -9,8 +9,8 @@ import java.util.List;
 
 @Entity
 @Data
-@Table(name = "status")
-public class Status {
+@Table(name = "status_default")
+public class DefaultStatus {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
@@ -23,11 +23,4 @@ public class Status {
     @Column(length = 200 , name = "statusDescription")
     private String description;
 
-    @JsonIgnore
-    @OneToMany(mappedBy = "status")
-    private List<Task> taskV2V2s;
-
-    @ManyToOne
-    @JoinColumn(name = "board_id")
-    private Board board;
 }

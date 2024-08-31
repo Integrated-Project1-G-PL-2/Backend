@@ -8,7 +8,7 @@ import jakarta.validation.constraints.Size;
 @Table(name = "boards")
 public class Board {
     @Id
-    @Size(max = 36)
+    @Size(max = 10)
     @Column(name = "id", nullable = false)
     private String id;
     @NotBlank
@@ -16,8 +16,7 @@ public class Board {
     @Column(name = "name",nullable = false)
     private String name;
 
-    @OneToOne
-    @JoinColumn(name = "users_oid", referencedColumnName = "oid")
-    private LocalUser localUser;
+    @Column(name = "status_default")
+    private String defaultStatus;
 
 }

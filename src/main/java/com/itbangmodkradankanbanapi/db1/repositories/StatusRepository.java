@@ -8,4 +8,6 @@ import java.util.List;
 public interface StatusRepository extends JpaRepository<Status , Integer> {
     List<Status> findAllByNameIgnoreCase(String name);
 
+    List<Status> findAllByBoardIs(String id);
+
 }

@@ -1,17 +1,17 @@
 package com.itbangmodkradankanbanapi.db1.service;
 
 import com.itbangmodkradankanbanapi.db1.entities.LocalUser;
-import com.itbangmodkradankanbanapi.db1.repositories.UserLocalRepository;
+import com.itbangmodkradankanbanapi.db1.repositories.localUserRepository;
 import com.itbangmodkradankanbanapi.db2.entities.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserLocalService {
-    private UserLocalRepository repository;
+    private localUserRepository repository;
 
     @Autowired
-    public UserLocalService(UserLocalRepository repository){
+    public UserLocalService(localUserRepository repository){
         this.repository = repository;
     }
 

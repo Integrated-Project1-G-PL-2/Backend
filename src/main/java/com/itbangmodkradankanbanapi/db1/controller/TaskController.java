@@ -5,6 +5,7 @@ import com.itbangmodkradankanbanapi.db1.dto.TaskDTOForAdd;
 import com.itbangmodkradankanbanapi.db1.entities.Task;
 import com.itbangmodkradankanbanapi.db1.service.ListMapper;
 import com.itbangmodkradankanbanapi.db1.service.TaskService;
+import com.itbangmodkradankanbanapi.db2.services.JwtTokenUtil;
 import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,17 +20,21 @@ import java.util.List;
 @RequestMapping("/tasks")
 public class TaskController {
     @Autowired
-    TaskService service;
+    private  TaskService service;
+
     @Autowired
     private ListMapper listMapper;
 
     @Autowired
     private ModelMapper mapper;
 
-   @GetMapping("")
-    public ResponseEntity<Object> getAllTask(@RequestParam(required = false) List<String> filterStatuses , @RequestParam(required = false) String sortBy) {
-        return ResponseEntity.ok(listMapper.mapList(service.findAllTask(filterStatuses,sortBy), TaskDTO.class, mapper));
-    }
+    @Autowired
+    private JwtTokenUtil jwtTokenUtil;
+
+//   @GetMapping("")
+//    public ResponseEntity<Object> getAllTask(@RequestParam(required = false) List<String> filterStatuses , @RequestParam(required = false) String sortBy,@RequestHeader("Authorization") String token) {
+//        return ResponseEntity.ok(listMapper.mapList(service.findAllTask(filterStatuses,sortBy), TaskDTO.class, mapper));
+//    }
 
     @GetMapping("/{id}")
     public Task getTaskById(@PathVariable Integer id){

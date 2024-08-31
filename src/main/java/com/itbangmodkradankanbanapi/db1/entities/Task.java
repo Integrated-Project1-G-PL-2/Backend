@@ -35,6 +35,4 @@ public class Task {
     @ManyToOne
     @JoinColumn(name = "boardId")
     private Board board;
-
-
 }
