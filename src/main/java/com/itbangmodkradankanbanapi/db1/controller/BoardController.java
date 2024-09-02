@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 
 @RestController
@@ -36,6 +37,12 @@ public class BoardController {
     }
 
     //tested
+    @GetMapping("/{id}/statuses")
+    public ResponseEntity<Object> getAllStatusOfBoard(@RequestHeader("Authorization") String token, @PathVariable String id) {
+        return ResponseEntity.ok(boardService.getAllStatus(token, id));
+    }
+
+    //tested
     @GetMapping("/{id}")
     public ResponseEntity<Object> getBoardById(@RequestHeader("Authorization") String token, @PathVariable String id) {
         return ResponseEntity.ok(boardService.getBoardById(token, id));
@@ -44,8 +51,13 @@ public class BoardController {
     // tested
     @GetMapping("/{id}/tasks/{taskId}")
     public ResponseEntity<Object> getTaskOfBoardById(@RequestHeader("Authorization") String token, @PathVariable String id, @PathVariable int taskId) {
-        System.out.println("controller");
         return ResponseEntity.ok(boardService.getTaskById(id, token, taskId));
+    }
+
+    // tested
+    @GetMapping("/{id}/statuses/{statusId}")
+    public ResponseEntity<Object> getStatusOfBoardById(@RequestHeader("Authorization") String token, @PathVariable String id, @PathVariable int statusId) {
+        return ResponseEntity.ok(boardService.getStatusById(id, token, statusId));
     }
 
     //tested
@@ -67,13 +79,33 @@ public class BoardController {
     }
 
     //tested
+    @PostMapping("/{id}/statuses")
+    public ResponseEntity<Object> addNewStatusToBoard(@Valid @RequestBody StatusDTO statusDTO, @RequestHeader("Authorization") String token, @PathVariable String id) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(boardService.addNewStatusToBoard(statusDTO, token, id));
+    }
+
+    //tested
     @PutMapping("/{id}/tasks/{taskId}")
     public ResponseEntity<TaskDTO> editTaskOfBoard(@Valid @RequestBody TaskDTO task, @RequestHeader("Authorization") String token, @PathVariable String id, @PathVariable int taskId) {
         return ResponseEntity.ok(boardService.editTaskOfBoard(task, token, id, taskId));
     }
 
+    @PutMapping("/{id}/statuses/{statusId}")
+    public ResponseEntity<StatusDTO> editStatusOfBoard(@Valid @RequestBody StatusDTO statusDTO, @RequestHeader("Authorization") String token, @PathVariable String id, @PathVariable int statusId) {
+        return ResponseEntity.ok(boardService.editStatusOfBoard(statusDTO, token, id, statusId));
+    }
+
+    //tested
     @DeleteMapping("/{id}/tasks/{taskId}")
     public ResponseEntity<TaskDTO> deleteTaskOfBoard(@RequestHeader("Authorization") String token, @PathVariable String id, @PathVariable int taskId) {
         return ResponseEntity.ok(boardService.deleteTaskOfBoard(token, id, taskId));
     }
+
+    @DeleteMapping("/{id}/statuses/{statusId}")
+    public ResponseEntity<Object> deleteStatusOfBoard(@RequestHeader("Authorization") String token, @PathVariable String id, @PathVariable int statusId) {
+        boardService.deleteStatusOfBoard(token, id, statusId);
+        return ResponseEntity.ok(new HashMap<>());
+    }
+
+
 }

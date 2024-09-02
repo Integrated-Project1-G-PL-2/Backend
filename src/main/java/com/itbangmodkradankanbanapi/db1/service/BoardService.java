@@ -1,12 +1,10 @@
 package com.itbangmodkradankanbanapi.db1.service;
 
 import com.itbangmodkradankanbanapi.db1.dto.BoardDTO;
+import com.itbangmodkradankanbanapi.db1.dto.StatusDTO;
 import com.itbangmodkradankanbanapi.db1.dto.TaskDTO;
 import com.itbangmodkradankanbanapi.db1.dto.TaskDTOForAdd;
-import com.itbangmodkradankanbanapi.db1.entities.Board;
-import com.itbangmodkradankanbanapi.db1.entities.BoardOfUser;
-import com.itbangmodkradankanbanapi.db1.entities.LocalUser;
-import com.itbangmodkradankanbanapi.db1.entities.Task;
+import com.itbangmodkradankanbanapi.db1.entities.*;
 import com.itbangmodkradankanbanapi.db1.repositories.BoardOfUserRepository;
 import com.itbangmodkradankanbanapi.db1.repositories.BoardRepository;
 import com.itbangmodkradankanbanapi.db1.repositories.localUserRepository;
@@ -33,6 +31,9 @@ public class BoardService {
     private TaskService taskService;
 
     @Autowired
+    private StatusService statusService;
+
+    @Autowired
     private JwtTokenUtil jwtTokenUtil;
 
     @Autowired
@@ -57,15 +58,29 @@ public class BoardService {
         return null;
     }
 
-    public Task getTaskById(String boardId, String token, int taskId) {
-        System.out.println("service board1");
+    public List<Status> getAllStatus(String token, String boardId) {
         LocalUser localUser = localUserRepository.findById(getUserFromToken(token).getOid()).orElseThrow(() -> new ItemNotFoundException("User not found"));
-        System.out.println(localUser);
         Board board = boardRepository.findById(boardId).orElseThrow(() -> new ItemNotFoundException("Board id '" + boardId + "' not found"));
-        System.out.println(board);
         if (boardOfUserRepository.findBoardOfUserByLocalUserAndBoard(localUser, board) != null) {
-            System.out.println("service board2");
+            return statusService.findAllStatus(boardId);
+        }
+        return null;
+    }
+
+    public Task getTaskById(String boardId, String token, int taskId) {
+        LocalUser localUser = localUserRepository.findById(getUserFromToken(token).getOid()).orElseThrow(() -> new ItemNotFoundException("User not found"));
+        Board board = boardRepository.findById(boardId).orElseThrow(() -> new ItemNotFoundException("Board id '" + boardId + "' not found"));
+        if (boardOfUserRepository.findBoardOfUserByLocalUserAndBoard(localUser, board) != null) {
             return taskService.findTaskById(taskId);
+        }
+        return null;
+    }
+
+    public Status getStatusById(String boardId, String token, int statusId) {
+        LocalUser localUser = localUserRepository.findById(getUserFromToken(token).getOid()).orElseThrow(() -> new ItemNotFoundException("User not found"));
+        Board board = boardRepository.findById(boardId).orElseThrow(() -> new ItemNotFoundException("Board id '" + boardId + "' not found"));
+        if (boardOfUserRepository.findBoardOfUserByLocalUserAndBoard(localUser, board) != null) {
+            return statusService.findStatusById(statusId);
         }
         return null;
     }
@@ -115,12 +130,32 @@ public class BoardService {
         return null;
     }
 
+    public StatusDTO addNewStatusToBoard(StatusDTO statusDTO, String token, String boardId) {
+        LocalUser localUser = localUserRepository.findById(getUserFromToken(token).getOid()).orElseThrow(() -> new ItemNotFoundException("User not found"));
+        Board board = boardRepository.findById(boardId).orElseThrow(() -> new ItemNotFoundException("Board id '" + boardId + "' not found"));
+        BoardOfUser boardOfUser = boardOfUserRepository.findBoardOfUserByLocalUserAndBoard(localUser, board);
+        if (boardOfUser != null) {
+            return statusService.createNewStatus(statusDTO, board);
+        }
+        return null;
+    }
+
     public TaskDTO editTaskOfBoard(TaskDTO task, String token, String boardId, int taskId) {
         LocalUser localUser = localUserRepository.findById(getUserFromToken(token).getOid()).orElseThrow(() -> new ItemNotFoundException("User not found"));
         Board board = boardRepository.findById(boardId).orElseThrow(() -> new ItemNotFoundException("Board id '" + boardId + "' not found"));
         BoardOfUser boardOfUser = boardOfUserRepository.findBoardOfUserByLocalUserAndBoard(localUser, board);
         if (boardOfUser != null) {
             return taskService.updateTask(taskId, task);
+        }
+        return null;
+    }
+
+    public StatusDTO editStatusOfBoard(StatusDTO statusDTO, String token, String boardId, int statusId) {
+        LocalUser localUser = localUserRepository.findById(getUserFromToken(token).getOid()).orElseThrow(() -> new ItemNotFoundException("User not found"));
+        Board board = boardRepository.findById(boardId).orElseThrow(() -> new ItemNotFoundException("Board id '" + boardId + "' not found"));
+        BoardOfUser boardOfUser = boardOfUserRepository.findBoardOfUserByLocalUserAndBoard(localUser, board);
+        if (boardOfUser != null) {
+            return statusService.updateStatus(statusId, statusDTO);
         }
         return null;
     }
@@ -133,6 +168,15 @@ public class BoardService {
             return taskService.deleteTask(taskId);
         }
         return null;
+    }
+
+    public void deleteStatusOfBoard(String token, String boardId, int statusId) {
+        LocalUser localUser = localUserRepository.findById(getUserFromToken(token).getOid()).orElseThrow(() -> new ItemNotFoundException("User not found"));
+        Board board = boardRepository.findById(boardId).orElseThrow(() -> new ItemNotFoundException("Board id '" + boardId + "' not found"));
+        BoardOfUser boardOfUser = boardOfUserRepository.findBoardOfUserByLocalUserAndBoard(localUser, board);
+        if (boardOfUser != null) {
+            statusService.deleteStatus(statusId);
+        }
     }
 
     private User getUserFromToken(String token) {

@@ -2,6 +2,7 @@ package com.itbangmodkradankanbanapi.db1.service;
 
 
 import com.itbangmodkradankanbanapi.db1.dto.StatusDTO;
+import com.itbangmodkradankanbanapi.db1.entities.Board;
 import com.itbangmodkradankanbanapi.db1.entities.Status;
 import com.itbangmodkradankanbanapi.exception.ItemNotFoundException;
 import com.itbangmodkradankanbanapi.exception.ItemNotFoundForUpdateAndDelete;
@@ -27,20 +28,20 @@ public class StatusService {
     @Autowired
     private TaskRepository taskRepository;
 
-    public List<Status> findAllStatus() {
-        return repository.findAll();
+    public List<Status> findAllStatus(String boardId) {
+        return repository.findAllStatusByBoardId(boardId);
     }
 
     @Transactional
-    public StatusDTO createNewStatus(StatusDTO newStatus)  {
-
-            List<Status> statusList = repository.findAllByNameIgnoreCase(newStatus.getName());
-            if(!statusList.isEmpty()){
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can not duplicate name");
-            }
-            Status mapStatus = mapper.map(newStatus, Status.class);
-            Status savedStatus = repository.saveAndFlush(mapStatus);
-            return  mapper.map(savedStatus, StatusDTO.class);
+    public StatusDTO createNewStatus(StatusDTO newStatus, Board board) {
+        List<Status> statusList = repository.findAllByNameIgnoreCaseAndBoard(newStatus.getName(), board);
+        if (!statusList.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Can not duplicate name");
+        }
+        Status mapStatus = mapper.map(newStatus, Status.class);
+        mapStatus.setBoard(board);
+        Status savedStatus = repository.saveAndFlush(mapStatus);
+        return mapper.map(savedStatus, StatusDTO.class);
     }
 
     public Status findStatusById(int id) throws ItemNotFoundException {
@@ -50,22 +51,17 @@ public class StatusService {
 
     @Transactional
     public StatusDTO updateStatus(Integer id, StatusDTO status) {
-        if(id == 1){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ID cannot be 1");
-        }
         Status existingStatus = repository.findById(id).orElseThrow(
                 () -> new ItemNotFoundForUpdateAndDelete("NOT FOUND"));
         existingStatus.setName(status.getName());
         existingStatus.setDescription(status.getDescription());
         Status updateStatus = repository.save(existingStatus);
-        return mapper.map(updateStatus ,StatusDTO.class);
+        return mapper.map(updateStatus, StatusDTO.class);
     }
 
     @Transactional
     public void deleteStatus(Integer id) {
-        System.out.println(id);
         Status status = repository.findById(id).orElseThrow(() -> new ItemNotFoundForUpdateAndDelete("NOT FOUND"));
-
         repository.delete(status);
     }
 
