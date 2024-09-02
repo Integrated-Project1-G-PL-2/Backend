@@ -25,11 +25,8 @@ public class TaskService {
     @Autowired
     private StatusRepository statusRepository;
 
-    public Task findTaskById(int id) throws ItemNotFoundException {
-        System.out.println("1");
-        Task taskV2 = repository.findById(id).orElseThrow(() -> new ItemNotFoundException("Task " + id + " does not exist !!!"));
-        System.out.println("2");
-        return taskV2;
+    public Task findTaskById(String boardId, int id) throws ItemNotFoundException {
+        return repository.findByBoard_IdAndId(boardId, id).orElseThrow(() -> new ItemNotFoundException("Task " + id + " does not exist !!!"));
     }
 
     public List<Task> findAllTask(List<String> statusNames, String sortBy, String boardId) {
@@ -53,16 +50,16 @@ public class TaskService {
     }
 
     @Transactional
-    public TaskDTO deleteTask(int id) {
-        Task taskV2 = repository.findById(id).orElseThrow(() -> new ItemNotFoundForUpdateAndDelete("NOT FOUND"));
+    public TaskDTO deleteTask(String boardId, int id) {
+        Task taskV2 = repository.findByBoard_IdAndId(boardId, id).orElseThrow(() -> new ItemNotFoundForUpdateAndDelete("NOT FOUND"));
         TaskDTO taskDTO = mapper.map(taskV2, TaskDTO.class);
         repository.delete(taskV2);
         return taskDTO;
     }
 
     @Transactional
-    public TaskDTO updateTask(Integer id, TaskDTO taskDTO) {
-        Task existingTaskV2 = repository.findById(id).orElseThrow(
+    public TaskDTO updateTask(String boardId, Integer id, TaskDTO taskDTO) {
+        Task existingTaskV2 = repository.findByBoard_IdAndId(boardId, id).orElseThrow(
                 () -> new ItemNotFoundForUpdateAndDelete("NOT FOUND"));
         existingTaskV2.setDescription(taskDTO.getDescription());
         existingTaskV2.setTitle(taskDTO.getTitle());

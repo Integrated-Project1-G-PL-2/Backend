@@ -11,15 +11,21 @@ import com.itbangmodkradankanbanapi.db1.repositories.localUserRepository;
 import com.itbangmodkradankanbanapi.db2.entities.User;
 import com.itbangmodkradankanbanapi.db2.repositories.UserRepository;
 import com.itbangmodkradankanbanapi.db2.services.JwtTokenUtil;
+import com.itbangmodkradankanbanapi.exception.ErrorResponse;
 import com.itbangmodkradankanbanapi.exception.ItemNotFoundException;
+import com.itbangmodkradankanbanapi.exception.ItemNotFoundForUpdateAndDelete;
 import io.viascom.nanoid.NanoId;
+import jakarta.servlet.http.HttpServletRequest;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.List;
 
 @Service
@@ -50,44 +56,43 @@ public class BoardService {
 
 
     public List<Task> getAllTask(List<String> filterStatuses, String sortBy, String token, String boardId) {
-        LocalUser localUser = localUserRepository.findById(getUserFromToken(token).getOid()).orElseThrow(() -> new ItemNotFoundException("User not found"));
-        Board board = boardRepository.findById(boardId).orElseThrow(() -> new ItemNotFoundException("Board id '" + boardId + "' not found"));
-        if (boardOfUserRepository.findBoardOfUserByLocalUserAndBoard(localUser, board) != null) {
+        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
+        if (boardOfUser != null) {
             return taskService.findAllTask(filterStatuses, sortBy, boardId);
+        } else {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
         }
-        return null;
     }
 
     public List<Status> getAllStatus(String token, String boardId) {
-        LocalUser localUser = localUserRepository.findById(getUserFromToken(token).getOid()).orElseThrow(() -> new ItemNotFoundException("User not found"));
-        Board board = boardRepository.findById(boardId).orElseThrow(() -> new ItemNotFoundException("Board id '" + boardId + "' not found"));
-        if (boardOfUserRepository.findBoardOfUserByLocalUserAndBoard(localUser, board) != null) {
+        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
+        if (boardOfUser != null) {
             return statusService.findAllStatus(boardId);
+        } else {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
         }
-        return null;
     }
 
     public Task getTaskById(String boardId, String token, int taskId) {
-        LocalUser localUser = localUserRepository.findById(getUserFromToken(token).getOid()).orElseThrow(() -> new ItemNotFoundException("User not found"));
-        Board board = boardRepository.findById(boardId).orElseThrow(() -> new ItemNotFoundException("Board id '" + boardId + "' not found"));
-        if (boardOfUserRepository.findBoardOfUserByLocalUserAndBoard(localUser, board) != null) {
-            return taskService.findTaskById(taskId);
+        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
+        if (boardOfUser != null) {
+            return taskService.findTaskById(boardId, taskId);
+        } else {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
         }
-        return null;
     }
 
     public Status getStatusById(String boardId, String token, int statusId) {
-        LocalUser localUser = localUserRepository.findById(getUserFromToken(token).getOid()).orElseThrow(() -> new ItemNotFoundException("User not found"));
-        Board board = boardRepository.findById(boardId).orElseThrow(() -> new ItemNotFoundException("Board id '" + boardId + "' not found"));
-        if (boardOfUserRepository.findBoardOfUserByLocalUserAndBoard(localUser, board) != null) {
-            return statusService.findStatusById(statusId);
+        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
+        if (boardOfUser != null) {
+            return statusService.findStatusById(boardId, statusId);
+        } else {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
         }
-        return null;
     }
 
     public BoardDTO createNewBoard(BoardDTO boardDTO, String token) {
-        LocalUser localUser = localUserRepository.findById(getUserFromToken(token).getOid())
-                .orElseThrow(() -> new ItemNotFoundException("User not found"));
+        LocalUser localUser = getLocalUserFromToken(token);
         try {
             Board board = boardRepository.save(new Board(boardDTO.getName()));
             if (localUser != null && board != null) {
@@ -103,80 +108,102 @@ public class BoardService {
     }
 
     public BoardDTO getBoardById(String token, String boardId) {
-        LocalUser localUser = localUserRepository.findById(getUserFromToken(token).getOid()).orElseThrow(() -> new ItemNotFoundException("User not found"));
-        Board board = boardRepository.findById(boardId).orElseThrow(() -> new ItemNotFoundException("Board id '" + boardId + "' not found"));
-        BoardOfUser boardOfUser = boardOfUserRepository.findBoardOfUserByLocalUserAndBoard(localUser, board);
+        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
+        Board board = getBoardById(boardId);
+        LocalUser localUser = getLocalUserFromToken(token);
         if (boardOfUser != null) {
             BoardDTO newBoard = mapper.map(board, BoardDTO.class);
             newBoard.setOwner(localUser);
             return newBoard;
+        } else {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
         }
-        return null;
     }
 
     public List<BoardOfUser> getAllBoard(String token) {
         LocalUser localUser = localUserRepository.findById(getUserFromToken(token).getOid()).orElseThrow(() -> new ItemNotFoundException("User not found"));
-        List<BoardOfUser> boardOfUsers = boardOfUserRepository.findAllByLocalUser(localUser);
-        return boardOfUsers;
+        return boardOfUserRepository.findAllByLocalUser(localUser);
+
     }
 
     public TaskDTO addNewTaskToBoard(TaskDTOForAdd task, String token, String boardId) {
-        LocalUser localUser = localUserRepository.findById(getUserFromToken(token).getOid()).orElseThrow(() -> new ItemNotFoundException("User not found"));
-        Board board = boardRepository.findById(boardId).orElseThrow(() -> new ItemNotFoundException("Board id '" + boardId + "' not found"));
-        BoardOfUser boardOfUser = boardOfUserRepository.findBoardOfUserByLocalUserAndBoard(localUser, board);
+        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
+        Board board = getBoardById(boardId);
         if (boardOfUser != null) {
             return taskService.createNewTask(task, board);
+        } else {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
         }
-        return null;
     }
 
     public StatusDTO addNewStatusToBoard(StatusDTO statusDTO, String token, String boardId) {
-        LocalUser localUser = localUserRepository.findById(getUserFromToken(token).getOid()).orElseThrow(() -> new ItemNotFoundException("User not found"));
-        Board board = boardRepository.findById(boardId).orElseThrow(() -> new ItemNotFoundException("Board id '" + boardId + "' not found"));
-        BoardOfUser boardOfUser = boardOfUserRepository.findBoardOfUserByLocalUserAndBoard(localUser, board);
+        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
+        Board board = getBoardById(boardId);
         if (boardOfUser != null) {
             return statusService.createNewStatus(statusDTO, board);
+        } else {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
         }
-        return null;
     }
 
     public TaskDTO editTaskOfBoard(TaskDTO task, String token, String boardId, int taskId) {
-        LocalUser localUser = localUserRepository.findById(getUserFromToken(token).getOid()).orElseThrow(() -> new ItemNotFoundException("User not found"));
-        Board board = boardRepository.findById(boardId).orElseThrow(() -> new ItemNotFoundException("Board id '" + boardId + "' not found"));
-        BoardOfUser boardOfUser = boardOfUserRepository.findBoardOfUserByLocalUserAndBoard(localUser, board);
+        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
         if (boardOfUser != null) {
-            return taskService.updateTask(taskId, task);
+            return taskService.updateTask(boardId, taskId, task);
+        } else {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
         }
-        return null;
     }
 
     public StatusDTO editStatusOfBoard(StatusDTO statusDTO, String token, String boardId, int statusId) {
-        LocalUser localUser = localUserRepository.findById(getUserFromToken(token).getOid()).orElseThrow(() -> new ItemNotFoundException("User not found"));
-        Board board = boardRepository.findById(boardId).orElseThrow(() -> new ItemNotFoundException("Board id '" + boardId + "' not found"));
-        BoardOfUser boardOfUser = boardOfUserRepository.findBoardOfUserByLocalUserAndBoard(localUser, board);
+        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
         if (boardOfUser != null) {
-            return statusService.updateStatus(statusId, statusDTO);
+            return statusService.updateStatus(boardId, statusId, statusDTO);
+        } else {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
         }
-        return null;
     }
 
     public TaskDTO deleteTaskOfBoard(String token, String boardId, int taskId) {
-        LocalUser localUser = localUserRepository.findById(getUserFromToken(token).getOid()).orElseThrow(() -> new ItemNotFoundException("User not found"));
-        Board board = boardRepository.findById(boardId).orElseThrow(() -> new ItemNotFoundException("Board id '" + boardId + "' not found"));
-        BoardOfUser boardOfUser = boardOfUserRepository.findBoardOfUserByLocalUserAndBoard(localUser, board);
+        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
         if (boardOfUser != null) {
-            return taskService.deleteTask(taskId);
+            return taskService.deleteTask(boardId, taskId);
+        } else {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
         }
-        return null;
     }
 
     public void deleteStatusOfBoard(String token, String boardId, int statusId) {
-        LocalUser localUser = localUserRepository.findById(getUserFromToken(token).getOid()).orElseThrow(() -> new ItemNotFoundException("User not found"));
-        Board board = boardRepository.findById(boardId).orElseThrow(() -> new ItemNotFoundException("Board id '" + boardId + "' not found"));
-        BoardOfUser boardOfUser = boardOfUserRepository.findBoardOfUserByLocalUserAndBoard(localUser, board);
+        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
         if (boardOfUser != null) {
-            statusService.deleteStatus(statusId);
+            statusService.deleteStatus(boardId, statusId);
+        } else {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
         }
+    }
+
+    public void deleteThenTranferStatusOfBoard(String token, String boardId, int statusId, int newStatusId) {
+        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
+        if (boardOfUser != null) {
+            statusService.deleteStatusAndTransfer(boardId, statusId, newStatusId);
+        } else {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
+        }
+    }
+
+    private BoardOfUser validateUserAndBoard(String token, String boardId) {
+        LocalUser localUser = getLocalUserFromToken(token);
+        Board board = getBoardById(boardId);
+        return boardOfUserRepository.findBoardOfUserByLocalUserAndBoard(localUser, board);
+    }
+
+    private LocalUser getLocalUserFromToken(String token) {
+        String userOid = getUserFromToken(token).getOid();
+        return localUserRepository.findById(userOid).orElseThrow(() -> new ItemNotFoundException("User not found"));
+    }
+
+    private Board getBoardById(String boardId) {
+        return boardRepository.findById(boardId).orElseThrow(() -> new ItemNotFoundException("Board id '" + boardId + "' not found"));
     }
 
     private User getUserFromToken(String token) {
@@ -186,5 +213,6 @@ public class BoardService {
         String username = jwtTokenUtil.getUsernameFromToken(token);
         return userRepository.findByUsername(username);
     }
+
 
 }

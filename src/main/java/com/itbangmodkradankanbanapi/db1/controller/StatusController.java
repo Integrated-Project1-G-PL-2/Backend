@@ -41,17 +41,17 @@ public class StatusController {
 //        return ResponseEntity.ok().body(updatedStatus);
 //    }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Object> deleteTask(@PathVariable Integer id) {
-        service.deleteStatus(id);
-        return ResponseEntity.ok().body(new HashMap<>());
-    }
-
-    @DeleteMapping("/{id}/{newId}")
-    public ResponseEntity<Object> deleteTask(@PathVariable Integer id, @PathVariable Integer newId) {
-        service.deleteStatusAndTransfer(id, newId);
-        return ResponseEntity.ok().body(new HashMap<>());
-    }
+//    @DeleteMapping("/{id}")
+//    public ResponseEntity<Object> deleteTask(@PathVariable Integer id) {
+//        service.deleteStatus(id);
+//        return ResponseEntity.ok().body(new HashMap<>());
+//    }
+//
+//    @DeleteMapping("/{id}/{newId}")
+//    public ResponseEntity<Object> deleteTask(@PathVariable Integer id, @PathVariable Integer newId) {
+//        service.deleteStatusAndTransfer(id, newId);
+//        return ResponseEntity.ok().body(new HashMap<>());
+//    }
 //
 //    @GetMapping("/{id}")
 //    public Status getStatusById(@PathVariable Integer id) {

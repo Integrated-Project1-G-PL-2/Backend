@@ -1,5 +1,6 @@
 package com.itbangmodkradankanbanapi.db1.repositories;
 
+import com.itbangmodkradankanbanapi.db1.entities.Board;
 import com.itbangmodkradankanbanapi.db1.entities.Status;
 import com.itbangmodkradankanbanapi.db1.entities.Task;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -7,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface TaskRepository extends JpaRepository<Task, Integer> {
     List<Task> findAllByOrderByCreatedOnAsc();
@@ -16,4 +18,6 @@ public interface TaskRepository extends JpaRepository<Task, Integer> {
 
     @Query(value = "SELECT * FROM tasksv2 WHERE boardId = :boardId", nativeQuery = true)
     List<Task> findAllTaskByBoardId(@Param("boardId") String boardId);
+
+    Optional<Task> findByBoard_IdAndId(String board_id, int id);
 }

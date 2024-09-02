@@ -36,10 +36,10 @@ public class TaskController {
 //        return ResponseEntity.ok(listMapper.mapList(service.findAllTask(filterStatuses,sortBy), TaskDTO.class, mapper));
 //    }
 
-    @GetMapping("/{id}")
-    public Task getTaskById(@PathVariable Integer id) {
-        return service.findTaskById(id);
-    }
+//    @GetMapping("/{id}")
+//    public Task getTaskById(@PathVariable Integer id) {
+//        return service.findTaskById(id);
+//    }
 
 //    @PostMapping("")
 //    public  ResponseEntity<TaskDTO> createNewTask(@Valid @RequestBody TaskDTOForAdd task){
@@ -47,15 +47,15 @@ public class TaskController {
 //        return ResponseEntity.status(HttpStatus.CREATED).body(createdTask);
 //    }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<TaskDTO> deleteTask(@PathVariable Integer id) {
-        TaskDTO task = service.deleteTask(id);
-        return ResponseEntity.ok().body(task);
-    }
+//    @DeleteMapping("/{id}")
+//    public ResponseEntity<TaskDTO> deleteTask(@PathVariable Integer id) {
+//        TaskDTO task = service.deleteTask(id);
+//        return ResponseEntity.ok().body(task);
+//    }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<TaskDTO> updateTask(@PathVariable Integer id, @RequestBody TaskDTO taskDTO) {
-        TaskDTO updatedTaskDTO = service.updateTask(id, taskDTO);
-        return ResponseEntity.ok().body(updatedTaskDTO);
-    }
+//    @PutMapping("/{id}")
+//    public ResponseEntity<TaskDTO> updateTask(@PathVariable Integer id, @RequestBody TaskDTO taskDTO) {
+//        TaskDTO updatedTaskDTO = service.updateTask(id, taskDTO);
+//        return ResponseEntity.ok().body(updatedTaskDTO);
+//    }
 }

@@ -44,35 +44,33 @@ public class StatusService {
         return mapper.map(savedStatus, StatusDTO.class);
     }
 
-    public Status findStatusById(int id) throws ItemNotFoundException {
-        Status status = repository.findById(id).orElseThrow(() -> new ItemNotFoundForUpdateAndDelete("NOT FOUND"));
+    public Status findStatusById(String boardId, int id) throws ItemNotFoundException {
+        Status status = repository.findByBoard_IdAndId(boardId, id).orElseThrow(() -> new ItemNotFoundForUpdateAndDelete("NOT FOUND"));
         return status;
     }
 
     @Transactional
-    public StatusDTO updateStatus(Integer id, StatusDTO status) {
-        Status existingStatus = repository.findById(id).orElseThrow(
-                () -> new ItemNotFoundForUpdateAndDelete("NOT FOUND"));
+    public StatusDTO updateStatus(String boardId, Integer id, StatusDTO status) {
+        Status existingStatus = repository.findByBoard_IdAndId(boardId, id).orElseThrow(() -> new ItemNotFoundForUpdateAndDelete("NOT FOUND"));
         existingStatus.setName(status.getName());
         existingStatus.setDescription(status.getDescription());
         Status updateStatus = repository.save(existingStatus);
         return mapper.map(updateStatus, StatusDTO.class);
     }
 
+    // cant delete if it used as FK
     @Transactional
-    public void deleteStatus(Integer id) {
-        Status status = repository.findById(id).orElseThrow(() -> new ItemNotFoundForUpdateAndDelete("NOT FOUND"));
+    public void deleteStatus(String boardId, int id) {
+        Status status = repository.findByBoard_IdAndId(boardId, id).orElseThrow(() -> new ItemNotFoundForUpdateAndDelete("NOT FOUND"));
         repository.delete(status);
     }
 
-    @Transactional
-    public void deleteStatusAndTransfer(Integer id, Integer newId) {
-        Status status = repository.findById(id)
-                .orElseThrow(() -> new ItemNotFoundForUpdateAndDelete("NOT FOUND"));
-        Status transferStatus = repository.findById(newId)
-                .orElseThrow(() -> new ItemNotFoundForUpdateAndDelete("NOT FOUND"));
 
-        List<Task> taskV2V2s = status.getTaskV2V2s();
+    @Transactional
+    public void deleteStatusAndTransfer(String boardId, Integer id, Integer newId) {
+        Status status = repository.findByBoard_IdAndId(boardId, id).orElseThrow(() -> new ItemNotFoundForUpdateAndDelete("NOT FOUND"));
+        Status transferStatus = repository.findByBoard_IdAndId(boardId, newId).orElseThrow(() -> new ItemNotFoundForUpdateAndDelete("NOT FOUND"));
+        List<Task> taskV2V2s = status.getTaskV2s();
         taskV2V2s.forEach(task -> task.setStatus(transferStatus));
         taskRepository.saveAll(taskV2V2s);
         repository.delete(status);

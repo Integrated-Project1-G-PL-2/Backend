@@ -25,7 +25,7 @@ public class Status {
 
     @JsonIgnore
     @OneToMany(mappedBy = "status")
-    private List<Task> taskV2V2s;
+    private List<Task> taskV2s;
 
     @ManyToOne
     @JsonIgnore

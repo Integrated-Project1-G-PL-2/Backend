@@ -107,5 +107,10 @@ public class BoardController {
         return ResponseEntity.ok(new HashMap<>());
     }
 
+    @DeleteMapping("/{id}/statuses/{statusId}/{newStatusId}")
+    public ResponseEntity<Object> deleteThenTransferStatusOfBoard(@RequestHeader("Authorization") String token, @PathVariable String id, @PathVariable int statusId, @PathVariable int newStatusId) {
+        boardService.deleteThenTranferStatusOfBoard(token, id, statusId, newStatusId);
+        return ResponseEntity.ok(new HashMap<>());
+    }
 
 }
