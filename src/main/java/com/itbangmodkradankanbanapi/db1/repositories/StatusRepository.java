@@ -1,13 +1,17 @@
 package com.itbangmodkradankanbanapi.db1.repositories;
 
 import com.itbangmodkradankanbanapi.db1.entities.Status;
+import com.itbangmodkradankanbanapi.db1.entities.Task;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface StatusRepository extends JpaRepository<Status , Integer> {
+public interface StatusRepository extends JpaRepository<Status, Integer> {
     List<Status> findAllByNameIgnoreCase(String name);
 
-    List<Status> findAllByBoardIs(String id);
+    @Query("SELECT s FROM Status  s where s.board.id = :id")
+    List<Status> findAllStatusByBoardId(@Param("id") String id);
 
 }

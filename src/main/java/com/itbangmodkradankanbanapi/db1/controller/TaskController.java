@@ -20,7 +20,7 @@ import java.util.List;
 @RequestMapping("/tasks")
 public class TaskController {
     @Autowired
-    private  TaskService service;
+    private TaskService service;
 
     @Autowired
     private ListMapper listMapper;
@@ -37,25 +37,25 @@ public class TaskController {
 //    }
 
     @GetMapping("/{id}")
-    public Task getTaskById(@PathVariable Integer id){
+    public Task getTaskById(@PathVariable Integer id) {
         return service.findTaskById(id);
     }
 
-    @PostMapping("")
-    public  ResponseEntity<TaskDTO> createNewTask(@Valid @RequestBody TaskDTOForAdd task){
-        TaskDTO createdTask = service.createNewTask(task);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdTask);
-    }
+//    @PostMapping("")
+//    public  ResponseEntity<TaskDTO> createNewTask(@Valid @RequestBody TaskDTOForAdd task){
+//        TaskDTO createdTask = service.createNewTask(task);
+//        return ResponseEntity.status(HttpStatus.CREATED).body(createdTask);
+//    }
 
-    @DeleteMapping ("/{id}")
-    public  ResponseEntity<TaskDTO> deleteTask(@PathVariable Integer id){
+    @DeleteMapping("/{id}")
+    public ResponseEntity<TaskDTO> deleteTask(@PathVariable Integer id) {
         TaskDTO task = service.deleteTask(id);
         return ResponseEntity.ok().body(task);
     }
 
     @PutMapping("/{id}")
-    public  ResponseEntity<TaskDTO> updateTask(@PathVariable Integer id , @RequestBody TaskDTO taskDTO){
+    public ResponseEntity<TaskDTO> updateTask(@PathVariable Integer id, @RequestBody TaskDTO taskDTO) {
         TaskDTO updatedTaskDTO = service.updateTask(id, taskDTO);
         return ResponseEntity.ok().body(updatedTaskDTO);
     }
-    }
+}

@@ -17,14 +17,10 @@ public class LocalUser {
     @Size(max = 36)
     @Column(name = "oid", nullable = false)
     private String oid;
-    @NotBlank
-    @Size(max = 50)
-    @Column(name = "username",nullable = false)
-    private String username;
 
     @NotBlank
     @Size(max = 100)
-    @Column( name = "name",nullable = false)
+    @Column(name = "name", nullable = false)
     private String name;
 
 

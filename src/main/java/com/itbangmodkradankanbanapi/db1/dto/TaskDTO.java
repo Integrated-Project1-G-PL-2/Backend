@@ -27,5 +27,5 @@ public class TaskDTO {
     public void setAssignees(String assignees) {
         this.assignees = assignees == null ? null : assignees.trim();
     }
-
+    
 }

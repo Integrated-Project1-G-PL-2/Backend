@@ -11,14 +11,14 @@ public class UserLocalService {
     private localUserRepository repository;
 
     @Autowired
-    public UserLocalService(localUserRepository repository){
+    public UserLocalService(localUserRepository repository) {
         this.repository = repository;
     }
 
-    public void addLocalUser(User user){
-        LocalUser localUser  = repository.findByOid(user.getOid());
+    public void addLocalUser(User user) {
+        LocalUser localUser = repository.findByOid(user.getOid());
         if (localUser == null) {
-            LocalUser newLocalUser = new LocalUser(user.getOid(),user.getUsername() ,user.getName());
+            LocalUser newLocalUser = new LocalUser(user.getOid(), user.getName());
             repository.save(newLocalUser);
         }
     }

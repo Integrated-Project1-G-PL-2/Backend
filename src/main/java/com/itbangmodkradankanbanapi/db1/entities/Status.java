@@ -17,10 +17,10 @@ public class Status {
     private Integer id;
 
     @NotBlank
-    @Column(nullable = false, length = 50 , name = "statusName")
+    @Column(nullable = false, length = 50, name = "statusName")
     private String name;
 
-    @Column(length = 200 , name = "statusDescription")
+    @Column(length = 200, name = "statusDescription")
     private String description;
 
     @JsonIgnore
@@ -28,6 +28,7 @@ public class Status {
     private List<Task> taskV2V2s;
 
     @ManyToOne
-    @JoinColumn(name = "board_id")
+    @JsonIgnore
+    @JoinColumn(name = "boardId", referencedColumnName = "id")
     private Board board;
 }
