@@ -13,8 +13,7 @@ import java.util.Optional;
 public interface StatusRepository extends JpaRepository<Status, Integer> {
     List<Status> findAllByNameIgnoreCaseAndBoard(String name, Board board);
 
-    @Query("SELECT s FROM Status  s where s.board.id = :id")
-    List<Status> findAllStatusByBoardId(@Param("id") String id);
+    List<Status> findAllByBoard(Board board);
 
     Optional<Status> findByBoard_IdAndId(String board_id, int id);
 }

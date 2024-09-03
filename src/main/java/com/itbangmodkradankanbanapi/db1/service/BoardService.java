@@ -66,8 +66,9 @@ public class BoardService {
 
     public List<Status> getAllStatus(String token, String boardId) {
         BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
+        Board board = getBoardById(boardId);
         if (boardOfUser != null) {
-            return statusService.findAllStatus(boardId);
+            return statusService.findAllStatus(board);
         } else {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
         }
@@ -84,8 +85,9 @@ public class BoardService {
 
     public Status getStatusById(String boardId, String token, int statusId) {
         BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
+        Board board = getBoardById(boardId);
         if (boardOfUser != null) {
-            return statusService.findStatusById(boardId, statusId);
+            return statusService.findStatusById(board, statusId);
         } else {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
         }
@@ -157,8 +159,9 @@ public class BoardService {
 
     public StatusDTO editStatusOfBoard(StatusDTO statusDTO, String token, String boardId, int statusId) {
         BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
+        Board board = getBoardById(boardId);
         if (boardOfUser != null) {
-            return statusService.updateStatus(boardId, statusId, statusDTO);
+            return statusService.updateStatus(board, statusId, statusDTO);
         } else {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
         }
@@ -175,8 +178,9 @@ public class BoardService {
 
     public void deleteStatusOfBoard(String token, String boardId, int statusId) {
         BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
+        Board board = getBoardById(boardId);
         if (boardOfUser != null) {
-            statusService.deleteStatus(boardId, statusId);
+            statusService.deleteStatus(board, statusId);
         } else {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
         }
@@ -184,8 +188,9 @@ public class BoardService {
 
     public void deleteThenTranferStatusOfBoard(String token, String boardId, int statusId, int newStatusId) {
         BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
+        Board board = getBoardById(boardId);
         if (boardOfUser != null) {
-            statusService.deleteStatusAndTransfer(boardId, statusId, newStatusId);
+            statusService.deleteStatusAndTransfer(board, statusId, newStatusId);
         } else {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
         }
