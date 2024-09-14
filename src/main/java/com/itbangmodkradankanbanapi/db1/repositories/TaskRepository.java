@@ -13,7 +13,7 @@ import java.util.Optional;
 public interface TaskRepository extends JpaRepository<Task, Integer> {
     List<Task> findAllByOrderByCreatedOnAsc();
 
-    @Query("SELECT t FROM Task t JOIN t.status s  JOIN Board b WHERE s.name IN :statusNames  AND b.id = :boardId ORDER BY :sortBy ASC")
+    @Query("SELECT t FROM Task t JOIN t.status s  JOIN t.board b WHERE s.name IN :statusNames  AND b.id = :boardId ORDER BY :sortBy ASC")
     List<Task> findAllByStatusNamesSorted(@Param("statusNames") List<String> statusNames, @Param("sortBy") String sortBy, @Param("boardId") String boardId);
 
     @Query(value = "SELECT * FROM tasksv2 WHERE boardId = :boardId", nativeQuery = true)
