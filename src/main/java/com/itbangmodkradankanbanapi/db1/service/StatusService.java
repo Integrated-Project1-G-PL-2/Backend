@@ -93,7 +93,7 @@ public class StatusService {
         StringBuilder updatedUseDefault = new StringBuilder(useDefault);
 
         for (int i = 0; i < useDefault.length() && i < centerStatusList.size(); i++) {
-            if (centerStatusList.get(i).getId() == id && useDefault.charAt(i) == '1') {
+            if (centerStatusList.get(i).getId() == id && useDefault.charAt(i) == '1' && centerStatusList.get(id).isEnable()) {
                 updatedUseDefault.setCharAt(i, '0');
                 statusIsDefault = true;
                 break;
@@ -125,7 +125,7 @@ public class StatusService {
         StringBuilder updatedUseDefault = new StringBuilder(useDefault);
 
         for (int i = 0; i < useDefault.length() && i < centerStatusList.size(); i++) {
-            if (centerStatusList.get(i).getId() == id && useDefault.charAt(i) == '1') {
+            if (centerStatusList.get(i).getId() == id && useDefault.charAt(i) == '1' && centerStatusList.get(id).isEnable()) {
                 updatedUseDefault.setCharAt(i, '0');
                 break;
             }
