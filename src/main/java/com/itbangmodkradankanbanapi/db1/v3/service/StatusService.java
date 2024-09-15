@@ -190,8 +190,11 @@ public class StatusService {
 
     private void transferTasks(Status sourceStatus, Status targetStatus) {
         List<Task> tasks = sourceStatus.getTaskV2s();
-        tasks.forEach(task -> task.setStatus(targetStatus));
-        taskRepository.saveAll(tasks);
+        if (tasks != null) {
+            tasks.forEach(task -> task.setStatus(targetStatus));
+            taskRepository.saveAll(tasks);
+        }
+
     }
 
 

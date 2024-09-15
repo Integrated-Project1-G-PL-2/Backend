@@ -14,7 +14,7 @@ public interface TaskRepository extends JpaRepository<Task, Integer> {
     @Query("SELECT t FROM Task t JOIN t.status s  JOIN t.board b WHERE s.name IN :statusNames  AND b.id = :boardId ORDER BY :sortBy ASC")
     List<Task> findAllByStatusNamesSorted(@Param("statusNames") List<String> statusNames, @Param("sortBy") String sortBy, @Param("boardId") String boardId);
 
-    @Query(value = "SELECT * FROM tasksv2 WHERE boardId = :boardId", nativeQuery = true)
+    @Query(value = "SELECT * FROM tasks WHERE boardId = :boardId", nativeQuery = true)
     List<Task> findAllTaskByBoardId(@Param("boardId") String boardId);
 
     Optional<Task> findByBoard_IdAndId(String board_id, int id);
