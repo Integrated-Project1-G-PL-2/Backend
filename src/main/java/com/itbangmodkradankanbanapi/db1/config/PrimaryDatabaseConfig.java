@@ -19,22 +19,25 @@ import javax.sql.DataSource;
 @Configuration
 @EnableTransactionManagement
 @EnableJpaRepositories(
-        basePackages = "com.itbangmodkradankanbanapi.db1.repositories",
+        basePackages = {
+                "com.itbangmodkradankanbanapi.db1.v2.repositories",
+                "com.itbangmodkradankanbanapi.db1.v3.repositories"
+        },
         entityManagerFactoryRef = "primaryEntityManagerFactory",
         transactionManagerRef = "primaryTransactionManager"
 )
 public class PrimaryDatabaseConfig {
     @Value("${spring.datasource.primary.url}")
-    String url ;
+    String url;
 
     @Value("${spring.datasource.primary.username}")
-    String username ;
+    String username;
 
     @Value("${spring.datasource.primary.password}")
-    String password ;
+    String password;
 
     @Value("${spring.datasource.primary.driver-class-name}")
-    String driver ;
+    String driver;
 
     @Primary
     @Bean(name = "primaryDataSource")
@@ -54,7 +57,8 @@ public class PrimaryDatabaseConfig {
             @Qualifier("primaryDataSource") DataSource primaryDataSource) {
         return builder
                 .dataSource(primaryDataSource)
-                .packages("com.itbangmodkradankanbanapi.db1.entities")
+                .packages("com.itbangmodkradankanbanapi.db1.v2.entities",
+                        "com.itbangmodkradankanbanapi.db1.v3.entities")
                 .persistenceUnit("primary")
                 .build();
     }

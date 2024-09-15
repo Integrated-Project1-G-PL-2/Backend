@@ -1,4 +1,4 @@
-package com.itbangmodkradankanbanapi.db1.service;
+package com.itbangmodkradankanbanapi.db1;
 
 
 import org.modelmapper.ModelMapper;

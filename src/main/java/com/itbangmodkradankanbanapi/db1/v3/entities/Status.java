@@ -1,4 +1,4 @@
-package com.itbangmodkradankanbanapi.db1.entities;
+package com.itbangmodkradankanbanapi.db1.v3.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -17,14 +17,18 @@ public class Status {
     private Integer id;
 
     @NotBlank
-    @Column(nullable = false, length = 50 , name = "statusName")
+    @Column(nullable = false, length = 50, name = "statusName")
     private String name;
 
-    @Column(length = 200 , name = "statusDescription")
+    @Column(length = 200, name = "statusDescription")
     private String description;
 
     @JsonIgnore
     @OneToMany(mappedBy = "status")
-    private List<Task> taskV2V2s;
+    private List<Task> taskV2s;
 
+    @ManyToOne
+    @JsonIgnore
+    @JoinColumn(name = "boardId", referencedColumnName = "id")
+    private Board board;
 }

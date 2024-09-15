@@ -10,16 +10,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -39,7 +35,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         final String requestTokenHeader = request.getHeader("Authorization");
         String username = null;
         String jwtToken = null;
-
+        if (request.getServletPath().equals("/login")) {
+            chain.doFilter(request, response);
+            return;
+        }
         try {
             if (requestTokenHeader != null) {
                 if (requestTokenHeader.startsWith("Bearer ")) {
@@ -61,6 +60,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     writeErrorResponse(response, HttpStatus.UNAUTHORIZED, "JWT Token does not begin with Bearer String");
                     return;
                 }
+            } else {
+                writeErrorResponse(response, HttpStatus.UNAUTHORIZED, "JWT Token not found");
+                return;
             }
 
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -72,10 +74,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
                 }
             }
-
             chain.doFilter(request, response);
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             writeErrorResponse(response, HttpStatus.INTERNAL_SERVER_ERROR, "An internal error occurred");
         }
     }

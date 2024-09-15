@@ -1,6 +1,6 @@
-package com.itbangmodkradankanbanapi.db1.dto;
+package com.itbangmodkradankanbanapi.db1.v3.dto;
 
-import com.itbangmodkradankanbanapi.db1.entities.Status;
+import com.itbangmodkradankanbanapi.db1.v3.entities.Status;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 

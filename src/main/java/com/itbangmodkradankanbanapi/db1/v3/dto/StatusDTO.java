@@ -1,9 +1,11 @@
-package com.itbangmodkradankanbanapi.db1.dto;
+package com.itbangmodkradankanbanapi.db1.v3.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
+
 @Data
 public class StatusDTO {
 
