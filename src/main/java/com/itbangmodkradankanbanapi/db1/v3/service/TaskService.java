@@ -24,6 +24,8 @@ public class TaskService {
     private ModelMapper mapper;
     @Autowired
     private StatusRepository statusRepository;
+    @Autowired
+    private StatusService statusService;
 
     public Task findTaskById(String boardId, int id) throws ItemNotFoundException {
         return repository.findByBoard_IdAndId(boardId, id).orElseThrow(() -> new ItemNotFoundException("Task " + id + " does not exist !!!"));
@@ -63,13 +65,18 @@ public class TaskService {
     }
 
     @Transactional
-    public TaskDTO updateTask(String boardId, Integer id, TaskDTO taskDTO) {
-        Task existingTaskV2 = repository.findByBoard_IdAndId(boardId, id).orElseThrow(
+    public TaskDTO updateTask(Board board, Integer id, TaskDTO taskDTO) {
+        Task existingTaskV2 = repository.findByBoard_IdAndId(board.getId(), id).orElseThrow(
                 () -> new ItemNotFoundForUpdateAndDelete("NOT FOUND"));
+        List<Status> allPossibleStatus = statusService.findAllStatus(board);
+        for (Status status : allPossibleStatus) {
+            if (status.getId().equals(taskDTO.getStatus().getId())) {
+                existingTaskV2.setStatus(status);
+            }
+        }
         existingTaskV2.setDescription(taskDTO.getDescription());
         existingTaskV2.setTitle(taskDTO.getTitle());
         existingTaskV2.setAssignees(taskDTO.getAssignees());
-        existingTaskV2.setStatus(taskDTO.getStatus());
         Task savedTaskV2 = repository.save(existingTaskV2);
         TaskDTO updateTaskDTO = mapper.map(savedTaskV2, TaskDTO.class);
         updateTaskDTO.setDescription(null);

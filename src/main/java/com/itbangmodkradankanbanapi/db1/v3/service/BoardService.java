@@ -142,8 +142,9 @@ public class BoardService {
 
     public TaskDTO editTaskOfBoard(TaskDTO task, String token, String boardId, int taskId) {
         BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
+        Board board = getBoardById(boardId);
         if (boardOfUser != null) {
-            return taskService.updateTask(boardId, taskId, task);
+            return taskService.updateTask(board, taskId, task);
         } else {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
         }
