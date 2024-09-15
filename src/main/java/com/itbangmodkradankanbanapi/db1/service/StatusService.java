@@ -93,10 +93,12 @@ public class StatusService {
         StringBuilder updatedUseDefault = new StringBuilder(useDefault);
 
         for (int i = 0; i < useDefault.length() && i < centerStatusList.size(); i++) {
-            if (centerStatusList.get(i).getId() == id && useDefault.charAt(i) == '1' && centerStatusList.get(id).isEnable()) {
-                updatedUseDefault.setCharAt(i, '0');
+            if (centerStatusList.get(i).getId() == id && useDefault.charAt(i) == '1') {
                 statusIsDefault = true;
-                break;
+                if (centerStatusList.get(i).isEnable()) {
+                    updatedUseDefault.setCharAt(i, '0');
+                    break;
+                }
             }
         }
 
@@ -120,17 +122,21 @@ public class StatusService {
     // cant delete if it used as FK
     @Transactional
     public void deleteStatus(Board board, int id) {
+        boolean statusIsDefault = false;
         String useDefault = board.getDefaultStatus();
         List<CenterStatus> centerStatusList = centerStatusRepository.findAllByOrderByIdAsc();
         StringBuilder updatedUseDefault = new StringBuilder(useDefault);
-
         for (int i = 0; i < useDefault.length() && i < centerStatusList.size(); i++) {
-            if (centerStatusList.get(i).getId() == id && useDefault.charAt(i) == '1' && centerStatusList.get(id).isEnable()) {
-                updatedUseDefault.setCharAt(i, '0');
-                break;
+            if (centerStatusList.get(i).getId() == id && useDefault.charAt(i) == '1') {
+                statusIsDefault = true;
+                if (centerStatusList.get(i).isEnable()) {
+                    updatedUseDefault.setCharAt(i, '0');
+                    break;
+                }
+
             }
         }
-        if (updatedUseDefault.toString().equalsIgnoreCase(useDefault)) {
+        if (updatedUseDefault.toString().equalsIgnoreCase(useDefault) && !statusIsDefault) {
             Status status = statusRepository.findByBoard_IdAndId(board.getId(), id).orElseThrow(() -> new ItemNotFoundForUpdateAndDelete("NOT FOUND"));
             statusRepository.delete(status);
         } else {
@@ -150,11 +156,11 @@ public class StatusService {
 
         for (int i = 0; i < useDefault.length() && i < centerStatusList.size(); i++) {
             if (centerStatusList.get(i).getId() == id && useDefault.charAt(i) == '1') {
-                updatedUseDefault.setCharAt(i, '0');
-                System.out.println("new is default");
                 oldStatusIsDefault = true;
+                if (centerStatusList.get(i).isEnable()) {
+                    updatedUseDefault.setCharAt(i, '0');
+                }
             } else if (centerStatusList.get(i).getId() == newId) {
-                System.out.println("new is default");
                 newStatusIsDefault = true;
             }
         }
@@ -179,7 +185,7 @@ public class StatusService {
                 ? statusRepository.findById(statusId)
                 .orElseThrow(() -> new ItemNotFoundForUpdateAndDelete("NOT FOUND"))
                 : statusRepository.findByBoard_IdAndId(boardId, statusId)
-                .orElseThrow(() -> new ItemNotFoundForUpdateAndDelete("NOT FOUND2"));
+                .orElseThrow(() -> new ItemNotFoundForUpdateAndDelete("NOT FOUND"));
     }
 
     private void transferTasks(Status sourceStatus, Status targetStatus) {

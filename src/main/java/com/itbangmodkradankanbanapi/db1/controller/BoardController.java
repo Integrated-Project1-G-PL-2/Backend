@@ -39,7 +39,7 @@ public class BoardController {
 
     //tested
     @PostMapping("")
-    public ResponseEntity<Object> addNewBoard(@RequestBody BoardDTO boardDTO, @RequestHeader("Authorization") String token) {
-        return ResponseEntity.ok(boardService.createNewBoard(boardDTO, token));
+    public ResponseEntity<Object> addNewBoard(@Valid @RequestBody BoardDTO boardDTO, @RequestHeader("Authorization") String token) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(boardService.createNewBoard(boardDTO, token));
     }
 }

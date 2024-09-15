@@ -68,4 +68,23 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
     }
 
+
+    @ExceptionHandler(Exception.class)  // Catch any general exception
+    public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex, HttpServletRequest request) {
+        // Log the full stack trace
+        ex.printStackTrace();
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                Timestamp.from(Instant.now()),
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),  // Use 500 for internal errors
+                "Internal Server Error",
+                ex.getMessage(),  // Get the exception message
+                null,
+                request.getRequestURI()
+        );
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+    }
+
+
 }

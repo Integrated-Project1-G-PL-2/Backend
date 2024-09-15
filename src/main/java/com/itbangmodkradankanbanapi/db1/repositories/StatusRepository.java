@@ -16,4 +16,6 @@ public interface StatusRepository extends JpaRepository<Status, Integer> {
     List<Status> findAllByBoard(Board board);
 
     Optional<Status> findByBoard_IdAndId(String board_id, int id);
+
+    Optional<Status> findByNameAndBoardIsNull(String name);
 }
