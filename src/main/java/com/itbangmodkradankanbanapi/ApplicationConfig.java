@@ -1,6 +1,6 @@
 package com.itbangmodkradankanbanapi;
 
-import com.itbangmodkradankanbanapi.db1.service.ListMapper;
+import com.itbangmodkradankanbanapi.db1.ListMapper;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

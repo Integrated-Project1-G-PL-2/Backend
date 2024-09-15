@@ -1,6 +1,6 @@
 package com.itbangmodkradankanbanapi.db2.services;
 
-import com.itbangmodkradankanbanapi.db1.service.UserLocalService;
+import com.itbangmodkradankanbanapi.db1.v3.service.UserLocalService;
 import com.itbangmodkradankanbanapi.db2.entities.AuthUser;
 import com.itbangmodkradankanbanapi.db2.entities.User;
 import com.itbangmodkradankanbanapi.db2.repositories.UserRepository;
@@ -20,11 +20,12 @@ public class JwtUserDetailsService implements UserDetailsService {
 
     @Autowired
     private UserLocalService userLocalService;
+
     @Override
     public UserDetails loadUserByUsername(String userName) throws UsernameNotFoundException {
         User user = userRepository.findByUsername(userName);
         if (user == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "username password incorrect" );
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "username password incorrect");
         }
         userLocalService.addLocalUser(user);
 //        List<GrantedAuthority> roles = new ArrayList<>();
