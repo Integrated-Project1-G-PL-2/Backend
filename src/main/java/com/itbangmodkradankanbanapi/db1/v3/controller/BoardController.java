@@ -2,6 +2,7 @@ package com.itbangmodkradankanbanapi.db1.v3.controller;
 
 import com.itbangmodkradankanbanapi.db1.v3.dto.BoardDTO;
 import com.itbangmodkradankanbanapi.db1.v3.service.BoardService;
+import com.itbangmodkradankanbanapi.exception.InvalidRequestField;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -29,7 +30,10 @@ public class BoardController {
 
     //tested
     @PostMapping("")
-    public ResponseEntity<Object> addNewBoard(@Valid @RequestBody BoardDTO boardDTO, @RequestHeader("Authorization") String token) {
+    public ResponseEntity<Object> addNewBoard(@Valid @RequestBody(required = false) BoardDTO boardDTO, @RequestHeader("Authorization") String token) {
+        if (boardDTO == null){
+            throw  new InvalidRequestField(HttpStatus.BAD_REQUEST, "Invalid request body");
+        }
         return ResponseEntity.status(HttpStatus.CREATED).body(boardService.createNewBoard(boardDTO, token));
     }
 }

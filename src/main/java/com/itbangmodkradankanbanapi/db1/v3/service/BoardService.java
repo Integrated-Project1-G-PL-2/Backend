@@ -12,6 +12,7 @@ import com.itbangmodkradankanbanapi.db2.entities.User;
 import com.itbangmodkradankanbanapi.db2.repositories.UserRepository;
 import com.itbangmodkradankanbanapi.db2.services.JwtTokenUtil;
 import com.itbangmodkradankanbanapi.exception.ItemNotFoundException;
+import com.itbangmodkradankanbanapi.exception.UnauthorizeAccessException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -52,7 +53,7 @@ public class BoardService {
         if (boardOfUser != null) {
             return taskService.findAllTask(filterStatuses, sortBy, boardId);
         } else {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
+            throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
         }
     }
 
@@ -62,7 +63,7 @@ public class BoardService {
         if (boardOfUser != null) {
             return statusService.findAllStatus(board);
         } else {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
+            throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
         }
     }
 
@@ -71,7 +72,7 @@ public class BoardService {
         if (boardOfUser != null) {
             return taskService.findTaskById(boardId, taskId);
         } else {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
+            throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
         }
     }
 
@@ -81,7 +82,7 @@ public class BoardService {
         if (boardOfUser != null) {
             return statusService.findStatusById(board, statusId);
         } else {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
+            throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
         }
     }
 
@@ -110,14 +111,13 @@ public class BoardService {
             newBoard.setOwner(localUser);
             return newBoard;
         } else {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
+            throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
         }
     }
 
     public List<BoardOfUser> getAllBoard(String token) {
         LocalUser localUser = localUserRepository.findById(getUserFromToken(token).getOid()).orElseThrow(() -> new ItemNotFoundException("User not found"));
         return boardOfUserRepository.findAllByLocalUser(localUser);
-
     }
 
     public TaskDTO addNewTaskToBoard(TaskDTOForAdd task, String token, String boardId) {
@@ -126,7 +126,7 @@ public class BoardService {
         if (boardOfUser != null) {
             return taskService.createNewTask(task, board);
         } else {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
+            throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
         }
     }
 
@@ -136,7 +136,7 @@ public class BoardService {
         if (boardOfUser != null) {
             return statusService.createNewStatus(statusDTO, board);
         } else {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
+            throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
         }
     }
 
@@ -146,7 +146,7 @@ public class BoardService {
         if (boardOfUser != null) {
             return taskService.updateTask(board, taskId, task);
         } else {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
+            throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
         }
     }
 
@@ -156,7 +156,7 @@ public class BoardService {
         if (boardOfUser != null) {
             return statusService.updateStatus(board, statusId, statusDTO);
         } else {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
+            throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
         }
     }
 
@@ -165,7 +165,7 @@ public class BoardService {
         if (boardOfUser != null) {
             return taskService.deleteTask(boardId, taskId);
         } else {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
+            throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
         }
     }
 
@@ -175,7 +175,7 @@ public class BoardService {
         if (boardOfUser != null) {
             statusService.deleteStatus(board, statusId);
         } else {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
+            throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
         }
     }
 
@@ -185,7 +185,7 @@ public class BoardService {
         if (boardOfUser != null) {
             statusService.deleteStatusAndTransfer(board, statusId, newStatusId);
         } else {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
+            throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
         }
     }
 

@@ -1,7 +1,12 @@
 package com.itbangmodkradankanbanapi.db2.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.itbangmodkradankanbanapi.db2.entities.User;
+import com.itbangmodkradankanbanapi.db2.repositories.UserRepository;
 import com.itbangmodkradankanbanapi.exception.ErrorResponse;
+import com.itbangmodkradankanbanapi.exception.ItemNotFoundException;
+import com.itbangmodkradankanbanapi.exception.ItemNotFoundForUpdateAndDelete;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
@@ -27,6 +32,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private JwtUserDetailsService jwtUserDetailsService;
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
+    @Autowired
+    private UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -35,6 +42,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         final String requestTokenHeader = request.getHeader("Authorization");
         String username = null;
         String jwtToken = null;
+        String oid = null;
         if (request.getServletPath().equals("/login")) {
             chain.doFilter(request, response);
             return;
@@ -49,6 +57,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     }
                     try {
                         username = jwtTokenUtil.getUsernameFromToken(jwtToken);
+                        oid = jwtTokenUtil.getOidFromToken(jwtToken);
+
                     } catch (SignatureException e) {
                         writeErrorResponse(response, HttpStatus.UNAUTHORIZED, "Invalid JWT signature");
                         return;
@@ -65,8 +75,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 return;
             }
 
-            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = this.jwtUserDetailsService.loadUserByUsername(username);
+            if (oid != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                User user = userRepository.findByOid(oid);
+                if(user == null){
+                    writeErrorResponse(response, HttpStatus.UNAUTHORIZED, "User oid does not exitst!!");
+                    return;
+                }
+                UserDetails userDetails = this.jwtUserDetailsService.loadUserByUsername(user.getUsername());
                 if (jwtTokenUtil.validateToken(jwtToken, userDetails)) {
                     UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
                             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
