@@ -7,6 +7,8 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.ZonedDateTime;
+
 @Entity
 @Table(name = "boards")
 @Data
@@ -23,6 +25,12 @@ public class Board {
 
     @Column(name = "status_default")
     private String defaultStatus;
+
+    @Column(name = "createdOn", insertable = false, updatable = false)
+    private ZonedDateTime createdOn;
+
+    @Column(name = "updatedOn", insertable = false, updatable = false)
+    private ZonedDateTime updatedOn;
 
     public Board(String name) {
         this.id = NanoId.generate(10);
