@@ -1,9 +1,11 @@
 package com.itbangmodkradankanbanapi.db2.services;
 
 import com.itbangmodkradankanbanapi.db2.entities.User;
+import com.itbangmodkradankanbanapi.db2.repositories.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -16,6 +18,9 @@ import java.util.function.Function;
 
 @Component
 public class JwtTokenUtil implements Serializable {
+    @Autowired
+    private UserRepository userRepository;
+
     @Value("${jwt.secret}")
     private String SECRET_KEY;
     @Value("#{${jwt.max-token-interval-hour}*60*60*1000}")
@@ -30,8 +35,8 @@ public class JwtTokenUtil implements Serializable {
         return getClaimFromToken(token, Claims::getExpiration);
     }
 
-    public String getOidFromToken(String token){
-        return  getClaimFromToken(token,claims -> claims.get("oid", String.class));
+    public String getOidFromToken(String token) {
+        return getClaimFromToken(token, claims -> claims.get("oid", String.class));
     }
 
 
@@ -42,6 +47,7 @@ public class JwtTokenUtil implements Serializable {
 
     public Claims getAllClaimsFromToken(String token) {
         Claims claims = Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
+        System.out.println(claims);
         return claims;
     }
 
@@ -71,6 +77,8 @@ public class JwtTokenUtil implements Serializable {
 
     public Boolean validateToken(String token, UserDetails userDetails) {
         final String username = getUsernameFromToken(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        final String oid = getOidFromToken(token);
+        User.UserRole role = getClaimFromToken(token, claims -> claims.get("role", User.UserRole.class));
+        return userRepository.existsByUsernameAndOidAndRole(username, oid, role);
     }
 }

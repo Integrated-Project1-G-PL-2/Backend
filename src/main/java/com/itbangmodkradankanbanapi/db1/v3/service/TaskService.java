@@ -45,9 +45,9 @@ public class TaskService {
     public TaskDTO createNewTask(TaskDTOForAdd newTask, Board board) {
         Status statusObj = null;
         if (newTask.getStatus() != null) {
-            statusObj = statusRepository.findById(newTask.getStatus()).orElseThrow(() -> new ItemNotFoundForUpdateAndDelete("NOT FOUND"));
+            statusObj = statusRepository.findByBoard_IdAndId(board.getId(), newTask.getStatus()).orElseThrow(() -> new ItemNotFoundForUpdateAndDelete("Status NOT FOUND"));
         } else {
-            statusObj = statusRepository.findByNameAndBoardIsNull("No Status").orElseThrow(() -> new ItemNotFoundForUpdateAndDelete("NOT FOUND"));
+            statusObj = statusRepository.findByNameAndBoardIsNull("No Status").orElseThrow(() -> new ItemNotFoundForUpdateAndDelete("Status NOT FOUND"));
         }
         Task taskV2 = mapper.map(newTask, Task.class);
         taskV2.setStatus(statusObj);
