@@ -46,6 +46,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (request.getServletPath().equals("/login")) {
             chain.doFilter(request, response);
             return;
+        }else if (request.getServletPath().equals("/token")) {
+            chain.doFilter(request, response);
+            return;
         }
         try {
             if (requestTokenHeader != null) {

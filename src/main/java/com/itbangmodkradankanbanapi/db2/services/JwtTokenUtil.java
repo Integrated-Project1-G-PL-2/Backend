@@ -64,7 +64,16 @@ public class JwtTokenUtil implements Serializable {
         claims.put("email", userDetails.getEmail());
         return doGenerateToken(claims, userDetails.getUsername());
     }
-
+     public  String generateRefreshToken(User userDetails){
+         Map<String, Object> claims = new HashMap<>();
+         claims.put("oid", userDetails.getOid());
+        return  Jwts.builder().setIssuedAt(new Date(System.currentTimeMillis()))
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY))
+                .setIssuer("https://intproj23.sit.kmutt.ac.th/pl2/")
+                .setClaims(claims)
+                .signWith(signatureAlgorithm, SECRET_KEY).compact();
+     }
     private String doGenerateToken(Map<String, Object> claims, String subject) {
         return Jwts.builder().setHeaderParam("typ", "JWT").
                 setClaims(claims)
@@ -79,6 +88,12 @@ public class JwtTokenUtil implements Serializable {
         final String username = getUsernameFromToken(token);
         final String oid = getOidFromToken(token);
         User.UserRole role = getClaimFromToken(token, claims -> claims.get("role", User.UserRole.class));
-        return userRepository.existsByUsernameAndOidAndRole(username, oid, role);
+        return userRepository.existsByUsernameAndOidAndRole(username, oid, role) && !isTokenExpired(token);
     }
+
+    public Boolean validateRefreshToken(String token) {
+        final String oid = getOidFromToken(token);
+        return userRepository.existsByOid(oid)&& !isTokenExpired(token);
+    }
+
 }

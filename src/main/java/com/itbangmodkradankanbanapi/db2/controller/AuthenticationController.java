@@ -6,6 +6,8 @@ import com.itbangmodkradankanbanapi.db2.entities.User;
 import com.itbangmodkradankanbanapi.db2.repositories.UserRepository;
 import com.itbangmodkradankanbanapi.db2.services.JwtTokenUtil;
 import com.itbangmodkradankanbanapi.db2.services.JwtUserDetailsService;
+import com.itbangmodkradankanbanapi.exception.ErrorResponse;
+import com.itbangmodkradankanbanapi.exception.UnauthorizeAccessException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.validation.Valid;
@@ -41,9 +43,22 @@ public class AuthenticationController {
         }
         User user = userRepository.findByUsername(jwtRequestUser.getUserName());
         String token = jwtTokenUtil.generateToken(user);
+        String refreshToken = jwtTokenUtil.generateRefreshToken(user);
 
 
-        return ResponseEntity.ok(new JwtResponse(token));
+
+        return ResponseEntity.ok(new JwtResponse(token , refreshToken));
+    }
+
+    @PostMapping("/token")
+    public ResponseEntity<Object> refreshToken(@RequestHeader("Authorization") String token) {
+        if(!jwtTokenUtil.validateRefreshToken(token)){
+           throw  new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED,"Invalid refresh-token");
+        }
+        String oid = jwtTokenUtil.getOidFromToken(token);
+        User user = userRepository.findByOid(oid);
+        String newToken = jwtTokenUtil.generateToken(user);
+        return ResponseEntity.ok(new JwtResponse(newToken));
     }
 
     @GetMapping("/validate-token")
