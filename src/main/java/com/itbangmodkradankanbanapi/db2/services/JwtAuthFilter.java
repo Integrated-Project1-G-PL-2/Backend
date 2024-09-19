@@ -46,7 +46,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (request.getServletPath().equals("/login")) {
             chain.doFilter(request, response);
             return;
-        }else if (request.getServletPath().equals("/token")) {
+        } else if (request.getServletPath().equals("/token")) {
             chain.doFilter(request, response);
             return;
         }
@@ -77,10 +77,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 writeErrorResponse(response, HttpStatus.UNAUTHORIZED, "JWT Token not found");
                 return;
             }
-
             if (oid != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 User user = userRepository.findByOid(oid);
-                if(user == null){
+                if (user == null) {
                     writeErrorResponse(response, HttpStatus.UNAUTHORIZED, "User oid does not exitst!!");
                     return;
                 }

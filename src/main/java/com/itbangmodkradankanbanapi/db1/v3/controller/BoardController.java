@@ -31,8 +31,8 @@ public class BoardController {
     //tested
     @PostMapping("")
     public ResponseEntity<Object> addNewBoard(@Valid @RequestBody(required = false) BoardDTO boardDTO, @RequestHeader("Authorization") String token) {
-        if (boardDTO == null){
-            throw  new InvalidRequestField(HttpStatus.BAD_REQUEST, "Invalid request body");
+        if (boardDTO == null) {
+            throw new InvalidRequestField(HttpStatus.BAD_REQUEST, "Invalid request body");
         }
         return ResponseEntity.status(HttpStatus.CREATED).body(boardService.createNewBoard(boardDTO, token));
     }

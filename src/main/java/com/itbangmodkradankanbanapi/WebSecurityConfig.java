@@ -26,11 +26,13 @@ public class WebSecurityConfig {
     JwtAuthFilter jwtAuthFilter;
     @Autowired
     JwtUserDetailsService jwtUserDetailsService;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.csrf(csrf -> csrf.disable())
                 .authorizeRequests(
                         request -> request.requestMatchers("/login").permitAll()
+                                .requestMatchers("/token").permitAll()
                                 .requestMatchers("/**").authenticated())
                 .httpBasic(withDefaults());
         httpSecurity.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

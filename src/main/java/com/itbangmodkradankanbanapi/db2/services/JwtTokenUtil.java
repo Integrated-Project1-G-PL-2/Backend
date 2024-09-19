@@ -39,6 +39,11 @@ public class JwtTokenUtil implements Serializable {
         return getClaimFromToken(token, claims -> claims.get("oid", String.class));
     }
 
+    public User.UserRole getRoleFromToken(String token) {
+        String roleString = getClaimFromToken(token, claims -> claims.get("role", String.class));
+        return User.UserRole.valueOf(roleString); // Convert String to Enum
+    }
+
 
     public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = getAllClaimsFromToken(token);
@@ -47,7 +52,6 @@ public class JwtTokenUtil implements Serializable {
 
     public Claims getAllClaimsFromToken(String token) {
         Claims claims = Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
-        System.out.println(claims);
         return claims;
     }
 
@@ -64,22 +68,24 @@ public class JwtTokenUtil implements Serializable {
         claims.put("email", userDetails.getEmail());
         return doGenerateToken(claims, userDetails.getUsername());
     }
-     public  String generateRefreshToken(User userDetails){
-         Map<String, Object> claims = new HashMap<>();
-         claims.put("oid", userDetails.getOid());
-        return  Jwts.builder().setIssuedAt(new Date(System.currentTimeMillis()))
+
+    public String generateRefreshToken(User userDetails) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("oid", userDetails.getOid());
+        return Jwts.builder().setIssuedAt(new Date(System.currentTimeMillis()))
+                .setClaims(claims)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY))
                 .setIssuer("https://intproj23.sit.kmutt.ac.th/pl2/")
-                .setClaims(claims)
                 .signWith(signatureAlgorithm, SECRET_KEY).compact();
-     }
+    }
+
     private String doGenerateToken(Map<String, Object> claims, String subject) {
         return Jwts.builder().setHeaderParam("typ", "JWT").
                 setClaims(claims)
                 .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY))
+                .setExpiration(new Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000))
                 .setIssuer("https://intproj23.sit.kmutt.ac.th/pl2/")
                 .signWith(signatureAlgorithm, SECRET_KEY).compact();
     }
@@ -87,13 +93,13 @@ public class JwtTokenUtil implements Serializable {
     public Boolean validateToken(String token, UserDetails userDetails) {
         final String username = getUsernameFromToken(token);
         final String oid = getOidFromToken(token);
-        User.UserRole role = getClaimFromToken(token, claims -> claims.get("role", User.UserRole.class));
+        User.UserRole role = getRoleFromToken(token);
         return userRepository.existsByUsernameAndOidAndRole(username, oid, role) && !isTokenExpired(token);
     }
 
     public Boolean validateRefreshToken(String token) {
         final String oid = getOidFromToken(token);
-        return userRepository.existsByOid(oid)&& !isTokenExpired(token);
+        return userRepository.existsByOid(oid) && !isTokenExpired(token);
     }
 
 }
