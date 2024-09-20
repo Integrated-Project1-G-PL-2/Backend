@@ -18,37 +18,37 @@ public class StatusController {
 
     // tested
     @GetMapping("/{statusId}")
-    public ResponseEntity<Object> getStatusOfBoardById(@RequestHeader("Authorization") String token, @PathVariable String id, @PathVariable int statusId) {
+    public ResponseEntity<Object> getStatusOfBoardById(@CookieValue(value = "itbkk-jwt", defaultValue = "") String token, @PathVariable String id, @PathVariable int statusId) {
         return ResponseEntity.ok(boardService.getStatusById(id, token, statusId));
     }
 
     //tested
     @GetMapping("")
-    public ResponseEntity<Object> getAllStatusOfBoard(@RequestHeader("Authorization") String token, @PathVariable String id) {
+    public ResponseEntity<Object> getAllStatusOfBoard(@CookieValue(value = "itbkk-jwt", defaultValue = "") String token, @PathVariable String id) {
         return ResponseEntity.ok(boardService.getAllStatus(token, id));
     }
 
     //tested
     @PostMapping("")
-    public ResponseEntity<Object> addNewStatusToBoard(@Valid @RequestBody StatusDTO statusDTO, @RequestHeader("Authorization") String token, @PathVariable String id) {
+    public ResponseEntity<Object> addNewStatusToBoard(@Valid @RequestBody StatusDTO statusDTO, @CookieValue(value = "itbkk-jwt", defaultValue = "") String token, @PathVariable String id) {
         return ResponseEntity.status(HttpStatus.CREATED).body(boardService.addNewStatusToBoard(statusDTO, token, id));
     }
 
 
     @PutMapping("/{statusId}")
-    public ResponseEntity<StatusDTO> editStatusOfBoard(@Valid @RequestBody StatusDTO statusDTO, @RequestHeader("Authorization") String token, @PathVariable String id, @PathVariable int statusId) {
+    public ResponseEntity<StatusDTO> editStatusOfBoard(@Valid @RequestBody StatusDTO statusDTO, @CookieValue(value = "itbkk-jwt", defaultValue = "") String token, @PathVariable String id, @PathVariable int statusId) {
         return ResponseEntity.ok(boardService.editStatusOfBoard(statusDTO, token, id, statusId));
     }
 
 
     @DeleteMapping("/{statusId}")
-    public ResponseEntity<Object> deleteStatusOfBoard(@RequestHeader("Authorization") String token, @PathVariable String id, @PathVariable int statusId) {
+    public ResponseEntity<Object> deleteStatusOfBoard(@CookieValue(value = "itbkk-jwt", defaultValue = "") String token, @PathVariable String id, @PathVariable int statusId) {
         boardService.deleteStatusOfBoard(token, id, statusId);
         return ResponseEntity.ok(new HashMap<>());
     }
 
     @DeleteMapping("/{statusId}/{newStatusId}")
-    public ResponseEntity<Object> deleteThenTransferStatusOfBoard(@RequestHeader("Authorization") String token, @PathVariable String id, @PathVariable int statusId, @PathVariable int newStatusId) {
+    public ResponseEntity<Object> deleteThenTransferStatusOfBoard(@CookieValue(value = "itbkk-jwt", defaultValue = "") String token, @PathVariable String id, @PathVariable int statusId, @PathVariable int newStatusId) {
         boardService.deleteThenTranferStatusOfBoard(token, id, statusId, newStatusId);
         return ResponseEntity.ok(new HashMap<>());
     }

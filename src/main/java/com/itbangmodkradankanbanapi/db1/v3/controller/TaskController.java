@@ -28,31 +28,31 @@ public class TaskController {
 
     //tested
     @GetMapping("")
-    public ResponseEntity<Object> getAllTaskOfBoard(@RequestParam(required = false) List<String> filterStatuses, @RequestParam(required = false) String sortBy, @RequestHeader("Authorization") String token, @PathVariable String id) {
+    public ResponseEntity<Object> getAllTaskOfBoard(@RequestParam(required = false) List<String> filterStatuses, @RequestParam(required = false) String sortBy, @CookieValue(value = "itbkk-jwt", defaultValue = "") String token, @PathVariable String id) {
         return ResponseEntity.ok(listMapper.mapList(boardService.getAllTask(filterStatuses, sortBy, token, id), TaskDTO.class, mapper));
     }
 
     // tested
     @GetMapping("/{taskId}")
-    public ResponseEntity<Object> getTaskOfBoardById(@RequestHeader("Authorization") String token, @PathVariable String id, @PathVariable int taskId) {
+    public ResponseEntity<Object> getTaskOfBoardById(@CookieValue(value = "itbkk-jwt", defaultValue = "") String token, @PathVariable String id, @PathVariable int taskId) {
         return ResponseEntity.ok(boardService.getTaskById(id, token, taskId));
     }
 
     //tested
     @PostMapping("")
-    public ResponseEntity<Object> addNewTaskToBoard(@Valid @RequestBody TaskDTOForAdd task, @RequestHeader("Authorization") String token, @PathVariable String id) {
+    public ResponseEntity<Object> addNewTaskToBoard(@Valid @RequestBody TaskDTOForAdd task, @CookieValue(value = "itbkk-jwt", defaultValue = "") String token, @PathVariable String id) {
         return ResponseEntity.status(HttpStatus.CREATED).body(boardService.addNewTaskToBoard(task, token, id));
     }
 
     //tested
     @PutMapping("/{taskId}")
-    public ResponseEntity<TaskDTO> editTaskOfBoard(@Valid @RequestBody TaskDTO task, @RequestHeader("Authorization") String token, @PathVariable String id, @PathVariable int taskId) {
+    public ResponseEntity<TaskDTO> editTaskOfBoard(@Valid @RequestBody TaskDTO task, @CookieValue(value = "itbkk-jwt", defaultValue = "") String token, @PathVariable String id, @PathVariable int taskId) {
         return ResponseEntity.ok(boardService.editTaskOfBoard(task, token, id, taskId));
     }
 
     //tested
     @DeleteMapping("/{taskId}")
-    public ResponseEntity<TaskDTO> deleteTaskOfBoard(@RequestHeader("Authorization") String token, @PathVariable String id, @PathVariable int taskId) {
+    public ResponseEntity<TaskDTO> deleteTaskOfBoard(@CookieValue(value = "itbkk-jwt", defaultValue = "") String token, @PathVariable String id, @PathVariable int taskId) {
         return ResponseEntity.ok(boardService.deleteTaskOfBoard(token, id, taskId));
     }
 }

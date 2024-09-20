@@ -5,10 +5,14 @@ import com.itbangmodkradankanbanapi.db2.repositories.UserRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.WebUtils;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -25,6 +29,12 @@ public class JwtTokenUtil implements Serializable {
     private String SECRET_KEY;
     @Value("#{${jwt.max-token-interval-hour}*60*60*1000}")
     private long JWT_TOKEN_VALIDITY;
+    @Value("${itbkk.app.jwtCookieName}")
+    private String JWT_COOKIE_NAME;
+    @Value("${itbkk.app.jwtRefreshCookieName}")
+    private String JWT_REFRESH_COOKIE_NAME;
+
+
     SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
 
     public String getUsernameFromToken(String token) {
@@ -44,6 +54,31 @@ public class JwtTokenUtil implements Serializable {
         return User.UserRole.valueOf(roleString); // Convert String to Enum
     }
 
+    public ResponseCookie generateJwtCookie(User user) {
+        String jwt = generateToken(user);
+        return generateCookie(JWT_COOKIE_NAME, jwt, "/");
+    }
+
+    public ResponseCookie generateRefreshJwtCookie(User user) {
+        String refreshToken = generateRefreshToken(user);
+        return generateCookie(JWT_REFRESH_COOKIE_NAME, refreshToken, "/token");
+    }
+
+    public String getJwtFromCookies(HttpServletRequest request) {
+        return getCookieValueByName(request, JWT_COOKIE_NAME);
+    }
+
+    public String getJwtRefreshFromCookies(HttpServletRequest request) {
+        return getCookieValueByName(request, JWT_REFRESH_COOKIE_NAME);
+    }
+
+    public ResponseCookie getCleanJwtCookie() {
+        return ResponseCookie.from(JWT_COOKIE_NAME, null).path("/").build();
+    }
+
+    public ResponseCookie getCleanJwtRefreshCookie() {
+        return ResponseCookie.from(JWT_REFRESH_COOKIE_NAME, null).path("/token").build();
+    }
 
     public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = getAllClaimsFromToken(token);
@@ -90,6 +125,10 @@ public class JwtTokenUtil implements Serializable {
                 .signWith(signatureAlgorithm, SECRET_KEY).compact();
     }
 
+    private ResponseCookie generateCookie(String name, String value, String path) {
+        return ResponseCookie.from(name, value).path(path).maxAge(24 * 60 * 60).httpOnly(true).build();
+    }
+
     public Boolean validateToken(String token, UserDetails userDetails) {
         final String username = getUsernameFromToken(token);
         final String oid = getOidFromToken(token);
@@ -100,6 +139,15 @@ public class JwtTokenUtil implements Serializable {
     public Boolean validateRefreshToken(String token) {
         final String oid = getOidFromToken(token);
         return userRepository.existsByOid(oid) && !isTokenExpired(token);
+    }
+
+    private String getCookieValueByName(HttpServletRequest request, String name) {
+        Cookie cookie = WebUtils.getCookie(request, name);
+        if (cookie != null) {
+            return cookie.getValue();
+        } else {
+            return null;
+        }
     }
 
 }

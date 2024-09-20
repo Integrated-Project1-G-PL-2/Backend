@@ -1,5 +1,7 @@
 package com.itbangmodkradankanbanapi.db2.controller;
 
+import com.itbangmodkradankanbanapi.db1.v3.dto.LocalUserDTO;
+import com.itbangmodkradankanbanapi.db1.v3.payload.MessageResponse;
 import com.itbangmodkradankanbanapi.db2.dto.JwtRequestUser;
 import com.itbangmodkradankanbanapi.db2.dto.JwtResponse;
 import com.itbangmodkradankanbanapi.db2.entities.User;
@@ -11,8 +13,11 @@ import com.itbangmodkradankanbanapi.exception.UnauthorizeAccessException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.validation.Valid;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -32,6 +37,8 @@ public class AuthenticationController {
     AuthenticationManager authenticationManager;
     @Autowired
     UserRepository userRepository;
+    @Autowired
+    private ModelMapper mapper;
 
     @PostMapping("/login")
     public ResponseEntity<Object> login(@RequestBody @Valid JwtRequestUser jwtRequestUser) {
@@ -42,26 +49,29 @@ public class AuthenticationController {
             throw new UsernameNotFoundException("Invalid user or password");
         }
         User user = userRepository.findByUsername(jwtRequestUser.getUserName());
-        String token = jwtTokenUtil.generateToken(user);
-        String refreshToken = jwtTokenUtil.generateRefreshToken(user);
+        ResponseCookie jwtCookie = jwtTokenUtil.generateJwtCookie(user);
+        ResponseCookie jwtRefreshCookie = jwtTokenUtil.generateRefreshJwtCookie(user);
 
 
-        return ResponseEntity.ok(new JwtResponse(token, refreshToken));
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, jwtRefreshCookie.toString())
+                .body(mapper.map(user, LocalUserDTO.class));
     }
 
     @PostMapping("/token")
-    public ResponseEntity<Object> refreshToken(@RequestHeader("Authorization") String token) {
-        String onlyToken = null;
-        if (token.startsWith("Bearer ")) {
-            onlyToken = token.substring(7);
+    public ResponseEntity<Object> refreshToken(@CookieValue(value = "itbkk-jwt-refresh", defaultValue = "") String token) {
+        if (token.isBlank()) {
+            throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "refresh not found");
         }
-        if (!jwtTokenUtil.validateRefreshToken(onlyToken) || onlyToken == null) {
+        if (!jwtTokenUtil.validateRefreshToken(token)) {
             throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "Invalid refresh-token");
         }
-        String oid = jwtTokenUtil.getOidFromToken(onlyToken);
+        String oid = jwtTokenUtil.getOidFromToken(token);
         User user = userRepository.findByOid(oid);
-        String newToken = jwtTokenUtil.generateToken(user);
-        return ResponseEntity.ok(new JwtResponse(newToken));
+        ResponseCookie jwtCookie = jwtTokenUtil.generateJwtCookie(user);
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString()).body(new MessageResponse("Token is refreshed successfully!"));
+
     }
 
     @GetMapping("/validate-token")
