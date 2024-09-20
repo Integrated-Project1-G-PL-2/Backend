@@ -1,18 +1,14 @@
 package com.itbangmodkradankanbanapi.db2.controller;
 
-import com.itbangmodkradankanbanapi.db1.v3.dto.LocalUserDTO;
 import com.itbangmodkradankanbanapi.db2.dto.JwtRequestUser;
 import com.itbangmodkradankanbanapi.db2.dto.JwtResponse;
 import com.itbangmodkradankanbanapi.db2.entities.User;
 import com.itbangmodkradankanbanapi.db2.repositories.UserRepository;
 import com.itbangmodkradankanbanapi.db2.services.JwtTokenUtil;
-import com.itbangmodkradankanbanapi.db2.services.JwtUserDetailsService;
-import com.itbangmodkradankanbanapi.exception.ErrorResponse;
 import com.itbangmodkradankanbanapi.exception.UnauthorizeAccessException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.validation.Valid;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
