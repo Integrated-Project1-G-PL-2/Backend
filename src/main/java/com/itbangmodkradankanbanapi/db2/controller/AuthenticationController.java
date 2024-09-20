@@ -1,7 +1,6 @@
 package com.itbangmodkradankanbanapi.db2.controller;
 
 import com.itbangmodkradankanbanapi.db1.v3.dto.LocalUserDTO;
-import com.itbangmodkradankanbanapi.db1.v3.payload.MessageResponse;
 import com.itbangmodkradankanbanapi.db2.dto.JwtRequestUser;
 import com.itbangmodkradankanbanapi.db2.dto.JwtResponse;
 import com.itbangmodkradankanbanapi.db2.entities.User;
@@ -30,15 +29,11 @@ import org.springframework.web.server.ResponseStatusException;
 
 public class AuthenticationController {
     @Autowired
-    JwtUserDetailsService jwtUserDetailsService;
-    @Autowired
     JwtTokenUtil jwtTokenUtil;
     @Autowired
     AuthenticationManager authenticationManager;
     @Autowired
     UserRepository userRepository;
-    @Autowired
-    private ModelMapper mapper;
 
     @PostMapping("/login")
     public ResponseEntity<Object> login(@RequestBody @Valid JwtRequestUser jwtRequestUser) {
@@ -49,14 +44,12 @@ public class AuthenticationController {
             throw new UsernameNotFoundException("Invalid user or password");
         }
         User user = userRepository.findByUsername(jwtRequestUser.getUserName());
-        ResponseCookie jwtCookie = jwtTokenUtil.generateJwtCookie(user);
+        String token = jwtTokenUtil.generateToken(user);
         ResponseCookie jwtRefreshCookie = jwtTokenUtil.generateRefreshJwtCookie(user);
 
-
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, jwtCookie.toString())
                 .header(HttpHeaders.SET_COOKIE, jwtRefreshCookie.toString())
-                .body(mapper.map(user, LocalUserDTO.class));
+                .body(new JwtResponse(token));
     }
 
     @PostMapping("/token")
@@ -69,9 +62,8 @@ public class AuthenticationController {
         }
         String oid = jwtTokenUtil.getOidFromToken(token);
         User user = userRepository.findByOid(oid);
-        ResponseCookie jwtCookie = jwtTokenUtil.generateJwtCookie(user);
-        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, jwtCookie.toString()).body(new MessageResponse("Token is refreshed successfully!"));
-
+        String newToken = jwtTokenUtil.generateToken(user);
+        return ResponseEntity.ok(new JwtResponse(newToken));
     }
 
     @GetMapping("/validate-token")

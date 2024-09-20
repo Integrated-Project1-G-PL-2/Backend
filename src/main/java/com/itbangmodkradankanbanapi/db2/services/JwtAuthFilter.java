@@ -39,8 +39,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
-        final String requestToken = jwtTokenUtil.getJwtFromCookies(request);
-        String username = null;
+        final String requestTokenHeader = request.getHeader("Authorization");
+        String jwtToken = null;
         String oid = null;
         if (request.getServletPath().equals("/login")) {
             chain.doFilter(request, response);
@@ -50,20 +50,25 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             return;
         }
         try {
-            if (requestToken != null) {
-                if (requestToken.split("\\.").length != 3) {
-                    writeErrorResponse(response, HttpStatus.UNAUTHORIZED, "Not well-formed JWT token");
-                    return;
-                }
-                try {
-                    username = jwtTokenUtil.getUsernameFromToken(requestToken);
-                    oid = jwtTokenUtil.getOidFromToken(requestToken);
+            if (requestTokenHeader != null) {
+                if (requestTokenHeader.startsWith("Bearer ")) {
+                    jwtToken = requestTokenHeader.substring(7);
+                    if (jwtToken.split("\\.").length != 3) {
+                        writeErrorResponse(response, HttpStatus.UNAUTHORIZED, "Not well-formed JWT token");
+                        return;
+                    }
+                    try {
+                        oid = jwtTokenUtil.getOidFromToken(jwtToken);
 
-                } catch (SignatureException e) {
-                    writeErrorResponse(response, HttpStatus.UNAUTHORIZED, "Invalid JWT signature");
-                    return;
-                } catch (ExpiredJwtException e) {
-                    writeErrorResponse(response, HttpStatus.UNAUTHORIZED, "Expired JWT token");
+                    } catch (SignatureException e) {
+                        writeErrorResponse(response, HttpStatus.UNAUTHORIZED, "Invalid JWT signature");
+                        return;
+                    } catch (ExpiredJwtException e) {
+                        writeErrorResponse(response, HttpStatus.UNAUTHORIZED, "Expired JWT token");
+                        return;
+                    }
+                } else {
+                    writeErrorResponse(response, HttpStatus.UNAUTHORIZED, "JWT Token does not begin with Bearer String");
                     return;
                 }
             } else {
@@ -77,7 +82,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     return;
                 }
                 UserDetails userDetails = this.jwtUserDetailsService.loadUserByUsername(user.getUsername());
-                if (jwtTokenUtil.validateToken(requestToken, userDetails)) {
+                if (jwtTokenUtil.validateToken(jwtToken, userDetails)) {
                     UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
                             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                     usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

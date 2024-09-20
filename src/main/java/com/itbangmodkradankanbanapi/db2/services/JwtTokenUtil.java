@@ -29,8 +29,6 @@ public class JwtTokenUtil implements Serializable {
     private String SECRET_KEY;
     @Value("#{${jwt.max-token-interval-hour}*60*60*1000}")
     private long JWT_TOKEN_VALIDITY;
-    @Value("${itbkk.app.jwtCookieName}")
-    private String JWT_COOKIE_NAME;
     @Value("${itbkk.app.jwtRefreshCookieName}")
     private String JWT_REFRESH_COOKIE_NAME;
 
@@ -51,30 +49,20 @@ public class JwtTokenUtil implements Serializable {
 
     public User.UserRole getRoleFromToken(String token) {
         String roleString = getClaimFromToken(token, claims -> claims.get("role", String.class));
-        return User.UserRole.valueOf(roleString); // Convert String to Enum
+        return User.UserRole.valueOf(roleString);
     }
 
-    public ResponseCookie generateJwtCookie(User user) {
-        String jwt = generateToken(user);
-        return generateCookie(JWT_COOKIE_NAME, jwt, "/");
-    }
 
     public ResponseCookie generateRefreshJwtCookie(User user) {
         String refreshToken = generateRefreshToken(user);
         return generateCookie(JWT_REFRESH_COOKIE_NAME, refreshToken, "/token");
     }
 
-    public String getJwtFromCookies(HttpServletRequest request) {
-        return getCookieValueByName(request, JWT_COOKIE_NAME);
-    }
 
     public String getJwtRefreshFromCookies(HttpServletRequest request) {
         return getCookieValueByName(request, JWT_REFRESH_COOKIE_NAME);
     }
 
-    public ResponseCookie getCleanJwtCookie() {
-        return ResponseCookie.from(JWT_COOKIE_NAME, null).path("/").build();
-    }
 
     public ResponseCookie getCleanJwtRefreshCookie() {
         return ResponseCookie.from(JWT_REFRESH_COOKIE_NAME, null).path("/token").build();

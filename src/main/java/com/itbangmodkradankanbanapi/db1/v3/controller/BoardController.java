@@ -17,20 +17,20 @@ public class BoardController {
 
     //tested
     @GetMapping("/{id}")
-    public ResponseEntity<Object> getBoardById(@CookieValue(value = "itbkk-jwt", defaultValue = "") String token, @PathVariable String id) {
+    public ResponseEntity<Object> getBoardById(@RequestHeader("Authorization") String token, @PathVariable String id) {
         return ResponseEntity.ok(boardService.getBoardById(token, id));
     }
 
 
     //tested
     @GetMapping("")
-    public ResponseEntity<Object> getAllBoard(@CookieValue(value = "itbkk-jwt", defaultValue = "") String token) {
+    public ResponseEntity<Object> getAllBoard(@RequestHeader("Authorization") String token) {
         return ResponseEntity.ok(boardService.getAllBoard(token));
     }
 
     //tested
     @PostMapping("")
-    public ResponseEntity<Object> addNewBoard(@Valid @RequestBody(required = false) BoardDTO boardDTO, @CookieValue(value = "itbkk-jwt", defaultValue = "") String token) {
+    public ResponseEntity<Object> addNewBoard(@Valid @RequestBody(required = false) BoardDTO boardDTO, @RequestHeader("Authorization") String token) {
         if (boardDTO == null) {
             throw new InvalidRequestField(HttpStatus.BAD_REQUEST, "Invalid request body");
         }
