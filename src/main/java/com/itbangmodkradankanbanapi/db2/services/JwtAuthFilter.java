@@ -45,10 +45,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (request.getServletPath().equals("/login")) {
             chain.doFilter(request, response);
             return;
-        } else if (request.getServletPath().equals("/token")) {
+        }
+        /* <FOR HTTP ONLY COOKIE>
+        else if (request.getServletPath().equals("/token")) {
             chain.doFilter(request, response);
             return;
-        }
+        }*/
         try {
             if (requestTokenHeader != null) {
                 if (requestTokenHeader.startsWith("Bearer ")) {
@@ -82,6 +84,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     return;
                 }
                 UserDetails userDetails = this.jwtUserDetailsService.loadUserByUsername(user.getUsername());
+                if (request.getServletPath().equals("/token")) {
+                    chain.doFilter(request, response);
+                    return;
+                }
                 if (jwtTokenUtil.validateToken(jwtToken, userDetails)) {
                     UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
                             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());

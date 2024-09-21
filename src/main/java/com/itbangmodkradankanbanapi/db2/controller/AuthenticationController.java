@@ -8,12 +8,9 @@ import com.itbangmodkradankanbanapi.db2.services.JwtTokenUtil;
 import com.itbangmodkradankanbanapi.exception.UnauthorizeAccessException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -32,6 +29,7 @@ public class AuthenticationController {
     @Autowired
     UserRepository userRepository;
 
+    /* <FOR HTTP ONLY COOKIE>
     @PostMapping("/login")
     public ResponseEntity<Object> login(@RequestBody @Valid JwtRequestUser jwtRequestUser) {
         UsernamePasswordAuthenticationToken authenticationToken =
@@ -63,6 +61,38 @@ public class AuthenticationController {
         String newToken = jwtTokenUtil.generateToken(user);
         return ResponseEntity.ok(new JwtResponse(newToken));
     }
+    */
+
+    @PostMapping("/login")
+    public ResponseEntity<Object> login(@RequestBody @Valid JwtRequestUser jwtRequestUser) {
+        UsernamePasswordAuthenticationToken authenticationToken =
+                new UsernamePasswordAuthenticationToken(jwtRequestUser.getUserName(), jwtRequestUser.getPassword());
+        Authentication authentication = authenticationManager.authenticate(authenticationToken);
+        if (!authentication.isAuthenticated()) {
+            throw new UsernameNotFoundException("Invalid user or password");
+        }
+        User user = userRepository.findByUsername(jwtRequestUser.getUserName());
+        String token = jwtTokenUtil.generateToken(user);
+        String refreshToken = jwtTokenUtil.generateRefreshToken(user);
+
+        return ResponseEntity.ok(new JwtResponse(token, refreshToken));
+    }
+
+    @PostMapping("/token")
+    public ResponseEntity<Object> refreshToken(@RequestHeader("Authorization") String token) {
+        String onlyToken = null;
+        if (token.startsWith("Bearer ")) {
+            onlyToken = token.substring(7);
+        }
+        if (!jwtTokenUtil.validateRefreshToken(onlyToken) || onlyToken == null) {
+            throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "Invalid refresh-token");
+        }
+        String oid = jwtTokenUtil.getOidFromToken(onlyToken);
+        User user = userRepository.findByOid(oid);
+        String newToken = jwtTokenUtil.generateToken(user);
+        return ResponseEntity.ok(new JwtResponse(newToken));
+    }
+
 
     @GetMapping("/validate-token")
     public ResponseEntity<Object> validateToken(@RequestHeader("Authorization") String requestTokenHeader) {
