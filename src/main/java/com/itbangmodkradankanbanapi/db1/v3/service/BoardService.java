@@ -89,7 +89,7 @@ public class BoardService {
     public BoardDTO createNewBoard(BoardDTO boardDTO, String token) {
         LocalUser localUser = getLocalUserFromToken(token);
         try {
-            Board board = boardRepository.save(new Board(boardDTO.getName()));
+            Board board = boardRepository.save(new Board(boardDTO.getName(), "private"));
             if (localUser != null && board != null) {
                 BoardOfUser boardOfUser = new BoardOfUser(localUser, board);
                 boardOfUserRepository.save(boardOfUser);

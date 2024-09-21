@@ -36,4 +36,14 @@ public class BoardController {
         }
         return ResponseEntity.status(HttpStatus.CREATED).body(boardService.createNewBoard(boardDTO, token));
     }
+
+    //tested
+    @PutMapping("")
+    public ResponseEntity<Object> editVisibilityBoard(@Valid @RequestBody(required = false) BoardDTO boardDTO, @RequestHeader("Authorization") String token) {
+        if (boardDTO == null) {
+            throw new InvalidRequestField(HttpStatus.BAD_REQUEST, "Invalid request body");
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(boardService.createNewBoard(boardDTO, token));
+    }
+
 }

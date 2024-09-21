@@ -8,6 +8,7 @@ import com.itbangmodkradankanbanapi.db2.services.JwtTokenUtil;
 import com.itbangmodkradankanbanapi.exception.UnauthorizeAccessException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -49,7 +50,8 @@ public class AuthenticationController {
     }
 
     @PostMapping("/token")
-    public ResponseEntity<Object> refreshToken(@CookieValue(value = "itbkk-jwt-refresh", defaultValue = "") String token) {
+    public ResponseEntity<Object> refreshToken(HttpServletRequest request) {
+        String token = jwtTokenUtil.getJwtRefreshFromCookies(request);
         if (token.isBlank()) {
             throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "refresh not found");
         }

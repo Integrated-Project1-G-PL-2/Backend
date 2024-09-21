@@ -32,9 +32,21 @@ public class Board {
     @Column(name = "updatedOn", insertable = false, updatable = false)
     private ZonedDateTime updatedOn;
 
-    public Board(String name) {
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "visibility", nullable = false)
+    private Visibility visibility;
+
+    public Board(String name, String visibility) {
         this.id = NanoId.generate(10);
         this.name = name;
+        this.visibility = Visibility.valueOf(visibility);
         this.defaultStatus = "1111";
     }
+
+    public enum Visibility {
+        PRIVATE,
+        PUBLIC,
+    }
+
 }
