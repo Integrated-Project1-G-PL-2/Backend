@@ -33,6 +33,8 @@ public class ApplicationConfig {
                 registry.addMapping("/**")
                         .allowedOrigins(allowedOrigins)
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD")
+                        .allowedHeaders("*")
+                        .exposedHeaders("Set-Cookie")
                         .allowCredentials(true);
             }
         };

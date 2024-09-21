@@ -114,7 +114,12 @@ public class JwtTokenUtil implements Serializable {
     }
 
     private ResponseCookie generateCookie(String name, String value, String path) {
-        return ResponseCookie.from(name, value).path(path).maxAge(24 * 60 * 60).httpOnly(true).build();
+        return ResponseCookie.from(name, value)
+                .path(path)
+                .maxAge(24 * 60 * 60)
+                .httpOnly(true)
+                .sameSite("None")
+                .build();
     }
 
     public Boolean validateToken(String token, UserDetails userDetails) {
