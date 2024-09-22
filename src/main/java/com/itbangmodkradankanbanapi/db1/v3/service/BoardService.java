@@ -49,8 +49,12 @@ public class BoardService {
 
 
     public List<Task> getAllTask(List<String> filterStatuses, String sortBy, String token, String boardId) {
+        Board board = getBoardById(boardId);
+        if (isPublicAccessibility(board)) {
+            return taskService.findAllTask(filterStatuses, sortBy, boardId);
+        }
         BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
-        if (boardOfUser != null) {
+        if (boardOfUser != null && canAccess(boardOfUser)) {
             return taskService.findAllTask(filterStatuses, sortBy, boardId);
         } else {
             throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
@@ -58,9 +62,12 @@ public class BoardService {
     }
 
     public List<Status> getAllStatus(String token, String boardId) {
-        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
         Board board = getBoardById(boardId);
-        if (boardOfUser != null) {
+        if (isPublicAccessibility(board)) {
+            return statusService.findAllStatus(board);
+        }
+        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
+        if (boardOfUser != null && canAccess(boardOfUser)) {
             return statusService.findAllStatus(board);
         } else {
             throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
@@ -68,8 +75,12 @@ public class BoardService {
     }
 
     public Task getTaskById(String boardId, String token, int taskId) {
+        Board board = getBoardById(boardId);
+        if (isPublicAccessibility(board)) {
+            return taskService.findTaskById(boardId, taskId);
+        }
         BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
-        if (boardOfUser != null) {
+        if (boardOfUser != null && canAccess(boardOfUser)) {
             return taskService.findTaskById(boardId, taskId);
         } else {
             throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
@@ -77,9 +88,12 @@ public class BoardService {
     }
 
     public Status getStatusById(String boardId, String token, int statusId) {
-        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
         Board board = getBoardById(boardId);
-        if (boardOfUser != null) {
+        if (isPublicAccessibility(board)) {
+            return statusService.findStatusById(board, statusId);
+        }
+        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
+        if (boardOfUser != null && canAccess(boardOfUser)) {
             return statusService.findStatusById(board, statusId);
         } else {
             throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
@@ -105,7 +119,7 @@ public class BoardService {
     public BoardDTO editBoard(BoardDTO boardDTO, String token, String boardId) {
         BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
         Board board = getBoardById(boardId);
-        if (isOwner(boardOfUser)) {
+        if (boardOfUser != null && isOwner(boardOfUser)) {
             board.setVisibility(Board.Visibility.valueOf(boardDTO.getVisibility()));
             board = boardRepository.save(board);
             return mapper.map(board, BoardDTO.class);
@@ -134,7 +148,7 @@ public class BoardService {
 
     public List<BoardOfUser> getAllBoard(String token) {
         LocalUser localUser = localUserRepository.findById(getUserFromToken(token).getOid()).orElseThrow(() -> new ItemNotFoundException("User not found"));
-        return boardOfUserRepository.findAllByLocalUser(localUser);
+        return boardOfUserRepository.findAllByLocalUserAndRole(localUser, BoardOfUser.Role.OWNER);
     }
 
     public TaskDTO addNewTaskToBoard(TaskDTOForAdd task, String token, String boardId) {
