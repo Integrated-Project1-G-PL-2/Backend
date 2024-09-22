@@ -57,7 +57,7 @@ public class BoardService {
         if (boardOfUser != null && canAccess(boardOfUser)) {
             return taskService.findAllTask(filterStatuses, sortBy, boardId);
         } else {
-            throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
+            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
         }
     }
 
@@ -70,7 +70,7 @@ public class BoardService {
         if (boardOfUser != null && canAccess(boardOfUser)) {
             return statusService.findAllStatus(board);
         } else {
-            throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
+            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
         }
     }
 
@@ -83,7 +83,7 @@ public class BoardService {
         if (boardOfUser != null && canAccess(boardOfUser)) {
             return taskService.findTaskById(boardId, taskId);
         } else {
-            throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
+            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
         }
     }
 
@@ -96,7 +96,7 @@ public class BoardService {
         if (boardOfUser != null && canAccess(boardOfUser)) {
             return statusService.findStatusById(board, statusId);
         } else {
-            throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
+            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
         }
     }
 
@@ -124,7 +124,7 @@ public class BoardService {
             board = boardRepository.save(board);
             return mapper.map(board, BoardDTO.class);
         } else {
-            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "Unauthorized access to the board");
+            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
         }
 
     }
@@ -142,7 +142,7 @@ public class BoardService {
             newBoard.setOwner(getBoardOfUser(boardId).getLocalUser());
             return newBoard;
         } else {
-            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "Unauthorized access to the board");
+            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
         }
     }
 
@@ -157,7 +157,7 @@ public class BoardService {
         if (boardOfUser != null) {
             return taskService.createNewTask(task, board);
         } else {
-            throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
+            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
         }
     }
 
@@ -167,7 +167,7 @@ public class BoardService {
         if (boardOfUser != null) {
             return statusService.createNewStatus(statusDTO, board);
         } else {
-            throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
+            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
         }
     }
 
@@ -177,7 +177,7 @@ public class BoardService {
         if (boardOfUser != null) {
             return taskService.updateTask(board, taskId, task);
         } else {
-            throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
+            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
         }
     }
 
@@ -187,7 +187,7 @@ public class BoardService {
         if (boardOfUser != null) {
             return statusService.updateStatus(board, statusId, statusDTO);
         } else {
-            throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
+            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
         }
     }
 
@@ -196,7 +196,7 @@ public class BoardService {
         if (boardOfUser != null) {
             return taskService.deleteTask(boardId, taskId);
         } else {
-            throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
+            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
         }
     }
 
@@ -206,7 +206,7 @@ public class BoardService {
         if (boardOfUser != null) {
             statusService.deleteStatus(board, statusId);
         } else {
-            throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
+            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
         }
     }
 
@@ -216,7 +216,7 @@ public class BoardService {
         if (boardOfUser != null) {
             statusService.deleteStatusAndTransfer(board, statusId, newStatusId);
         } else {
-            throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
+            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
         }
     }
 
