@@ -24,15 +24,17 @@ public class BoardOfUser {
     @JoinColumn(name = "users_oid")
     LocalUser localUser;
 
-    private String role;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
+    private Role role;
 
-    public BoardOfUser(LocalUser localUser, Board board) {
+    public BoardOfUser(LocalUser localUser, Board board, Role role) {
         this.id = new BoardUserKey();
         this.id.boardId = board.getId();
         this.id.localUserId = localUser.getOid();
         this.board = board;
         this.localUser = localUser;
-        this.role = "owner";
+        this.role = role;
     }
 
     @Embeddable
@@ -46,5 +48,11 @@ public class BoardOfUser {
         String localUserId;
 
 
+    }
+
+    public enum Role {
+        OWNER,
+        VISITOR,
+        COLLABORATOR,
     }
 }

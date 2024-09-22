@@ -1,6 +1,8 @@
 package com.itbangmodkradankanbanapi.db2.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.itbangmodkradankanbanapi.db1.v3.entities.Board;
+import com.itbangmodkradankanbanapi.db1.v3.service.BoardService;
 import com.itbangmodkradankanbanapi.db2.entities.User;
 import com.itbangmodkradankanbanapi.db2.repositories.UserRepository;
 import com.itbangmodkradankanbanapi.exception.ErrorResponse;
@@ -25,6 +27,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.Collections;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
@@ -34,6 +37,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private JwtTokenUtil jwtTokenUtil;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private BoardService boardService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -45,6 +50,17 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (request.getServletPath().equals("/login")) {
             chain.doFilter(request, response);
             return;
+        } else if (request.getServletPath().matches("/v3/boards/[\\w-]+.*")) {
+            String boardId = extractBoardIdFromPath(request.getServletPath());
+            Board board = boardService.getBoardById(boardId);
+
+            if ("PUBLIC".equals(board.getVisibility().toString())) {
+                UsernamePasswordAuthenticationToken anonymousAuth =
+                        new UsernamePasswordAuthenticationToken("anonymousUser", null, Collections.emptyList());
+                SecurityContextHolder.getContext().setAuthentication(anonymousAuth);
+                chain.doFilter(request, response);
+                return;
+            }
         }
         /* <FOR HTTP ONLY COOKIE>
         else if (request.getServletPath().equals("/token")) {
@@ -117,6 +133,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.writeValue(response.getWriter(), errorResponse);
     }
+
+
+    private String extractBoardIdFromPath(String path) {
+        String[] parts = path.split("/");
+        if (parts.length > 2 && "boards".equals(parts[2])) {
+            return parts[3];
+        }
+        return null;
+    }
+
 
 }
 

@@ -89,9 +89,9 @@ public class BoardService {
     public BoardDTO createNewBoard(BoardDTO boardDTO, String token) {
         LocalUser localUser = getLocalUserFromToken(token);
         try {
-            Board board = boardRepository.save(new Board(boardDTO.getName(), "private"));
+            Board board = boardRepository.save(new Board(boardDTO.getName(), "PRIVATE"));
             if (localUser != null && board != null) {
-                BoardOfUser boardOfUser = new BoardOfUser(localUser, board);
+                BoardOfUser boardOfUser = new BoardOfUser(localUser, board, BoardOfUser.Role.OWNER);
                 boardOfUserRepository.save(boardOfUser);
             }
             BoardDTO newBoard = mapper.map(board, BoardDTO.class);
@@ -102,16 +102,33 @@ public class BoardService {
         }
     }
 
-    public BoardDTO getBoardById(String token, String boardId) {
+    public BoardDTO editBoard(BoardDTO boardDTO, String token, String boardId) {
         BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
         Board board = getBoardById(boardId);
-        LocalUser localUser = getLocalUserFromToken(token);
-        if (boardOfUser != null) {
+        if (isOwner(boardOfUser)) {
+            board.setVisibility(Board.Visibility.valueOf(boardDTO.getVisibility()));
+            board = boardRepository.save(board);
+            return mapper.map(board, BoardDTO.class);
+        } else {
+            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "Unauthorized access to the board");
+        }
+
+    }
+
+    public BoardDTO getBoardById(String token, String boardId) {
+        Board board = getBoardById(boardId);
+        if (isPublicAccessibility(board)) {
             BoardDTO newBoard = mapper.map(board, BoardDTO.class);
-            newBoard.setOwner(localUser);
+            newBoard.setOwner(getBoardOfUser(boardId).getLocalUser());
+            return newBoard;
+        }
+        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
+        if (boardOfUser != null && canAccess(boardOfUser)) {
+            BoardDTO newBoard = mapper.map(board, BoardDTO.class);
+            newBoard.setOwner(getBoardOfUser(boardId).getLocalUser());
             return newBoard;
         } else {
-            throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "Unauthorized access to the board");
+            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "Unauthorized access to the board");
         }
     }
 
@@ -195,12 +212,18 @@ public class BoardService {
         return boardOfUserRepository.findBoardOfUserByLocalUserAndBoard(localUser, board);
     }
 
+    private BoardOfUser getBoardOfUser(String boardId) {
+        Board board = getBoardById(boardId);
+        return boardOfUserRepository.findBoardOfUserByBoardAndRole(board, BoardOfUser.Role.OWNER);
+    }
+
     private LocalUser getLocalUserFromToken(String token) {
-        String userOid = getUserFromToken(token).getOid();
+        User user = getUserFromToken(token);
+        String userOid = user.getOid();
         return localUserRepository.findById(userOid).orElseThrow(() -> new ItemNotFoundException("User not found"));
     }
 
-    private Board getBoardById(String boardId) {
+    public Board getBoardById(String boardId) {
         return boardRepository.findById(boardId).orElseThrow(() -> new ItemNotFoundException("Board id '" + boardId + "' not found"));
     }
 
@@ -210,6 +233,22 @@ public class BoardService {
         }
         String username = jwtTokenUtil.getUsernameFromToken(token);
         return userRepository.findByUsername(username);
+    }
+
+    public boolean isPublicAccessibility(Board board) {
+        return board.getVisibility().toString().equals("PUBLIC");
+    }
+
+    private boolean canModify(BoardOfUser boardOfUser) {
+        return boardOfUser.getRole().toString().equals("OWNER") || boardOfUser.getRole().toString().equals("COLLABORATOR");
+    }
+
+    private boolean canAccess(BoardOfUser boardOfUser) {
+        return boardOfUser.getRole().toString().equals("OWNER") || boardOfUser.getRole().toString().equals("COLLABORATOR") || boardOfUser.getRole().toString().equals("VISITOR");
+    }
+
+    private boolean isOwner(BoardOfUser boardOfUser) {
+        return boardOfUser.getRole().toString().equals("OWNER");
     }
 
 

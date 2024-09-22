@@ -1,5 +1,6 @@
 package com.itbangmodkradankanbanapi.exception;
 
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,7 +11,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.security.SignatureException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -57,16 +57,16 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(UnauthorizeAccessException.class)
-    public ResponseEntity<ErrorResponse> handleUnauthorized(ResponseStatusException ex, HttpServletRequest request) {
+    public ResponseEntity<ErrorResponse> handleUnauthorized(UnauthorizeAccessException ex, HttpServletRequest request) {
         ErrorResponse errorResponse = new ErrorResponse(
                 Timestamp.from(Instant.now()),
-                HttpStatus.UNAUTHORIZED.value(),
-                "Unauthorized",
+                ex.getStatusCode().value(),
+                ex.getMessage(),
                 ex.getReason(),
                 null,
                 request.getRequestURI()
         );
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+        return ResponseEntity.status(ex.getStatusCode()).body(errorResponse);
     }
 
     @ExceptionHandler(InvalidRequestField.class)
@@ -81,22 +81,22 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
-
-    @ExceptionHandler(Exception.class)  // Catch any general exception
-    public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex, HttpServletRequest request) {
-        // Log the full stack trace
-        ex.printStackTrace();
-
-        ErrorResponse errorResponse = new ErrorResponse(
-                Timestamp.from(Instant.now()),
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),  // Use 500 for internal errors
-                "Internal Server Error",
-                ex.getMessage(),  // Get the exception message
-                null,
-                request.getRequestURI()
-        );
-
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
-    }
+    
+//    @ExceptionHandler(Exception.class)  // Catch any general exception
+//    public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex, HttpServletRequest request) {
+//        // Log the full stack trace
+//        ex.printStackTrace();
+//
+//        ErrorResponse errorResponse = new ErrorResponse(
+//                Timestamp.from(Instant.now()),
+//                HttpStatus.INTERNAL_SERVER_ERROR.value(),  // Use 500 for internal errors
+//                "Internal Server Error",
+//                ex.getMessage(),  // Get the exception message
+//                null,
+//                request.getRequestURI()
+//        );
+//
+//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+//    }
 
 }

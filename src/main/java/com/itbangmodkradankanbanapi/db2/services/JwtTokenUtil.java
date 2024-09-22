@@ -98,7 +98,7 @@ public class JwtTokenUtil implements Serializable {
         return Jwts.builder().setIssuedAt(new Date(System.currentTimeMillis()))
                 .setClaims(claims)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY))
+                .setExpiration(new Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000))
                 .setIssuer("https://intproj23.sit.kmutt.ac.th/pl2/")
                 .signWith(signatureAlgorithm, SECRET_KEY).compact();
     }
@@ -108,7 +108,7 @@ public class JwtTokenUtil implements Serializable {
                 setClaims(claims)
                 .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000))
+                .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY))
                 .setIssuer("https://intproj23.sit.kmutt.ac.th/pl2/")
                 .signWith(signatureAlgorithm, SECRET_KEY).compact();
     }

@@ -11,4 +11,6 @@ public interface BoardOfUserRepository extends JpaRepository<BoardOfUser, BoardO
     BoardOfUser findBoardOfUserByLocalUserAndBoard(LocalUser localUser, Board board);
 
     List<BoardOfUser> findAllByLocalUser(LocalUser localUser);
+
+    BoardOfUser findBoardOfUserByBoardAndRole(Board board, BoardOfUser.Role role);
 }

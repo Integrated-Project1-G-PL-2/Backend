@@ -17,7 +17,7 @@ public class BoardController {
 
     //tested
     @GetMapping("/{id}")
-    public ResponseEntity<Object> getBoardById(@RequestHeader("Authorization") String token, @PathVariable String id) {
+    public ResponseEntity<Object> getBoardById(@RequestHeader(value = "Authorization", required = false) String token, @PathVariable String id) {
         return ResponseEntity.ok(boardService.getBoardById(token, id));
     }
 
@@ -38,12 +38,12 @@ public class BoardController {
     }
 
     //tested
-    @PutMapping("")
-    public ResponseEntity<Object> editVisibilityBoard(@Valid @RequestBody(required = false) BoardDTO boardDTO, @RequestHeader("Authorization") String token) {
+    @PatchMapping("/{id}")
+    public ResponseEntity<Object> editVisibilityBoard(@Valid @RequestBody(required = false) BoardDTO boardDTO, @RequestHeader("Authorization") String token, @PathVariable String id) {
         if (boardDTO == null) {
             throw new InvalidRequestField(HttpStatus.BAD_REQUEST, "Invalid request body");
         }
-        return ResponseEntity.status(HttpStatus.CREATED).body(boardService.createNewBoard(boardDTO, token));
+        return ResponseEntity.ok(boardService.editBoard(boardDTO, token, id));
     }
 
 }
