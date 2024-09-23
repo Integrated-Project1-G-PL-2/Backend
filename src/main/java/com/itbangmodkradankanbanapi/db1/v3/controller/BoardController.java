@@ -46,4 +46,12 @@ public class BoardController {
         return ResponseEntity.ok(boardService.editBoard(boardDTO, token, id));
     }
 
+//    @PostMapping("/{id}")
+//    public ResponseEntity<Object> grantPrivilegeToBoard(@Valid @RequestBody(required = false) BoardDTO boardDTO, @RequestHeader("Authorization") String token, @PathVariable String id) {
+//        if (boardDTO == null) {
+//            throw new InvalidRequestField(HttpStatus.BAD_REQUEST, "Invalid request body");
+//        }
+//        return ResponseEntity.ok(boardService.grantPrivilegeToBoard(boardDTO, token, id));
+//    }
+
 }

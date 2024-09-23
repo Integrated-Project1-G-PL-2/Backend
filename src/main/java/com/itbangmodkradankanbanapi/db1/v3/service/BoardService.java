@@ -129,6 +129,19 @@ public class BoardService {
 
     }
 
+//    public BoardDTO grantPrivilegeToBoard(BoardDTO boardDTO, String token, String boardId) {
+//        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
+//        Board board = getBoardById(boardId);
+//        if (boardOfUser != null && isOwner(boardOfUser)) {
+//            board.setVisibility(Board.Visibility.valueOf(boardDTO.getVisibility()));
+//            board = boardRepository.save(board);
+//            return mapper.map(board, BoardDTO.class);
+//        } else {
+//            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
+//        }
+//
+//    }
+
     public BoardDTO getBoardById(String token, String boardId) {
         Board board = getBoardById(boardId);
         if (isPublicAccessibility(board)) {
@@ -154,7 +167,7 @@ public class BoardService {
     public TaskDTO addNewTaskToBoard(TaskDTOForAdd task, String token, String boardId) {
         BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
         Board board = getBoardById(boardId);
-        if (boardOfUser != null) {
+        if (boardOfUser != null && canModify(boardOfUser)) {
             return taskService.createNewTask(task, board);
         } else {
             throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
@@ -164,7 +177,7 @@ public class BoardService {
     public StatusDTO addNewStatusToBoard(StatusDTO statusDTO, String token, String boardId) {
         BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
         Board board = getBoardById(boardId);
-        if (boardOfUser != null) {
+        if (boardOfUser != null && canModify(boardOfUser)) {
             return statusService.createNewStatus(statusDTO, board);
         } else {
             throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
@@ -174,7 +187,7 @@ public class BoardService {
     public TaskDTO editTaskOfBoard(TaskDTO task, String token, String boardId, int taskId) {
         BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
         Board board = getBoardById(boardId);
-        if (boardOfUser != null) {
+        if (boardOfUser != null && canModify(boardOfUser)) {
             return taskService.updateTask(board, taskId, task);
         } else {
             throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
@@ -184,7 +197,7 @@ public class BoardService {
     public StatusDTO editStatusOfBoard(StatusDTO statusDTO, String token, String boardId, int statusId) {
         BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
         Board board = getBoardById(boardId);
-        if (boardOfUser != null) {
+        if (boardOfUser != null && canModify(boardOfUser)) {
             return statusService.updateStatus(board, statusId, statusDTO);
         } else {
             throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
@@ -193,7 +206,7 @@ public class BoardService {
 
     public TaskDTO deleteTaskOfBoard(String token, String boardId, int taskId) {
         BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
-        if (boardOfUser != null) {
+        if (boardOfUser != null && canModify(boardOfUser)) {
             return taskService.deleteTask(boardId, taskId);
         } else {
             throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
@@ -203,7 +216,7 @@ public class BoardService {
     public void deleteStatusOfBoard(String token, String boardId, int statusId) {
         BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
         Board board = getBoardById(boardId);
-        if (boardOfUser != null) {
+        if (boardOfUser != null && canModify(boardOfUser)) {
             statusService.deleteStatus(board, statusId);
         } else {
             throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
@@ -213,7 +226,7 @@ public class BoardService {
     public void deleteThenTranferStatusOfBoard(String token, String boardId, int statusId, int newStatusId) {
         BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
         Board board = getBoardById(boardId);
-        if (boardOfUser != null) {
+        if (boardOfUser != null && canModify(boardOfUser)) {
             statusService.deleteStatusAndTransfer(board, statusId, newStatusId);
         } else {
             throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
