@@ -32,7 +32,7 @@ public class ApplicationConfig {
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
                         .allowedOrigins(allowedOrigins)
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD")
+                        .allowedMethods("GET", "POST", "PATCH", "PUT", "DELETE", "HEAD")
                         .allowedHeaders("*")
                         .exposedHeaders("Set-Cookie")
                         .allowCredentials(true);
