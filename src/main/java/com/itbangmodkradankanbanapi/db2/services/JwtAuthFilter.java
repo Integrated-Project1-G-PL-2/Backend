@@ -50,14 +50,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (request.getServletPath().equals("/login")) {
             chain.doFilter(request, response);
             return;
-        } else if (request.getServletPath().matches("/v3/boards/[\\w-]+.*")) {
+        } else if (request.getServletPath().matches("/v3/boards/[\\w-]+.*") && request.getMethod().equals("GET")) {
             String boardId = extractBoardIdFromPath(request.getServletPath());
             Board board = boardService.getBoardById(boardId);
 
             if ("PUBLIC".equals(board.getVisibility().toString())) {
-                UsernamePasswordAuthenticationToken anonymousAuth =
-                        new UsernamePasswordAuthenticationToken("anonymousUser", null, Collections.emptyList());
-                SecurityContextHolder.getContext().setAuthentication(anonymousAuth);
                 chain.doFilter(request, response);
                 return;
             }

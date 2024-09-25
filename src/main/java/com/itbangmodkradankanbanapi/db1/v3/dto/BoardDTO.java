@@ -17,7 +17,6 @@ import lombok.Setter;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class BoardDTO {
     @Size(max = 120)
-    @NotBlank
     private String name;
 
     private String id;
@@ -32,7 +31,7 @@ public class BoardDTO {
             this.owner = new LocalUserDTO(owner.getName());
         }
     }
-    
+
     @Getter
     @Setter
     @JsonInclude(JsonInclude.Include.NON_NULL)

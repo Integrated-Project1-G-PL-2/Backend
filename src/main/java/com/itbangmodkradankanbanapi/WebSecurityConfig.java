@@ -5,6 +5,7 @@ import com.itbangmodkradankanbanapi.db2.services.JwtUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -33,7 +34,9 @@ public class WebSecurityConfig {
                 .authorizeRequests(
                         request -> request.requestMatchers("/login").permitAll()
                                 .requestMatchers("/token").permitAll()
-                                .requestMatchers("/**").authenticated())
+                                .requestMatchers(HttpMethod.GET, "/v3/boards/**").permitAll()
+                                .anyRequest().authenticated()
+                )
                 .httpBasic(withDefaults());
         httpSecurity.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return httpSecurity.build();
