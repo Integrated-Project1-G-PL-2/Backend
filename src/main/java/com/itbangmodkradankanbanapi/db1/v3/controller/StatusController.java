@@ -18,13 +18,13 @@ public class StatusController {
 
     // tested
     @GetMapping("/{statusId}")
-    public ResponseEntity<Object> getStatusOfBoardById(@RequestHeader("Authorization") String token, @PathVariable String id, @PathVariable int statusId) {
+    public ResponseEntity<Object> getStatusOfBoardById(@RequestHeader(value = "Authorization", required = false) String token, @PathVariable String id, @PathVariable int statusId) {
         return ResponseEntity.ok(boardService.getStatusById(id, token, statusId));
     }
 
     //tested
     @GetMapping("")
-    public ResponseEntity<Object> getAllStatusOfBoard(@RequestHeader("Authorization") String token, @PathVariable String id) {
+    public ResponseEntity<Object> getAllStatusOfBoard(@RequestHeader(value = "Authorization", required = false) String token, @PathVariable String id) {
         return ResponseEntity.ok(boardService.getAllStatus(token, id));
     }
 

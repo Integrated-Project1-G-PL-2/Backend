@@ -10,5 +10,7 @@ import java.util.List;
 public interface BoardOfUserRepository extends JpaRepository<BoardOfUser, BoardOfUser.BoardUserKey> {
     BoardOfUser findBoardOfUserByLocalUserAndBoard(LocalUser localUser, Board board);
 
-    List<BoardOfUser> findAllByLocalUser(LocalUser localUser);
+    List<BoardOfUser> findAllByLocalUserAndRole(LocalUser localUser, BoardOfUser.Role role);
+
+    BoardOfUser findBoardOfUserByBoardAndRole(Board board, BoardOfUser.Role role);
 }

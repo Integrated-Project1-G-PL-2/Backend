@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.ZonedDateTime;
+
 @Entity
 @Table(name = "users")
 @Data
@@ -24,4 +26,19 @@ public class LocalUser {
     private String name;
 
 
+    @NotBlank
+    @Size(max = 50)
+    @Column(name = "username", nullable = false)
+    private String username;
+
+    @NotBlank
+    @Size(max = 50)
+    @Column(name = "email", nullable = false)
+    private String email;
+
+    @Column(name = "createdOn", insertable = false, updatable = false)
+    private ZonedDateTime createdOn;
+
+    @Column(name = "updatedOn", insertable = false, updatable = false)
+    private ZonedDateTime updatedOn;
 }

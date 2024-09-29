@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
+import java.time.ZonedDateTime;
 import java.util.List;
 
 @Entity
@@ -26,6 +27,12 @@ public class Status {
     @JsonIgnore
     @OneToMany(mappedBy = "status")
     private List<Task> taskV2s;
+
+    @Column(name = "createdOn", insertable = false, updatable = false)
+    private ZonedDateTime createdOn;
+
+    @Column(name = "updatedOn", insertable = false, updatable = false)
+    private ZonedDateTime updatedOn;
 
     @ManyToOne
     @JsonIgnore

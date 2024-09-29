@@ -3,6 +3,7 @@ package com.itbangmodkradankanbanapi.db1.v3.service;
 import com.itbangmodkradankanbanapi.db1.v3.entities.LocalUser;
 import com.itbangmodkradankanbanapi.db1.v3.repositories.localUserRepository;
 import com.itbangmodkradankanbanapi.db2.entities.User;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -10,15 +11,18 @@ import org.springframework.stereotype.Service;
 public class UserLocalService {
     private localUserRepository repository;
 
+    private ModelMapper mapper;
+
     @Autowired
-    public UserLocalService(localUserRepository repository) {
+    public UserLocalService(localUserRepository repository, ModelMapper mapper) {
         this.repository = repository;
+        this.mapper = mapper;
     }
 
     public void addLocalUser(User user) {
         LocalUser localUser = repository.findByOid(user.getOid());
         if (localUser == null) {
-            LocalUser newLocalUser = new LocalUser(user.getOid(), user.getName());
+            LocalUser newLocalUser = mapper.map(user, LocalUser.class);
             repository.save(newLocalUser);
         }
     }

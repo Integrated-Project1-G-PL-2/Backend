@@ -1,5 +1,6 @@
 package com.itbangmodkradankanbanapi.exception;
 
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -55,36 +56,47 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<ErrorResponse> handleUnauthorized(ResponseStatusException ex, HttpServletRequest request) {
+    @ExceptionHandler(UnauthorizeAccessException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthorized(UnauthorizeAccessException ex, HttpServletRequest request) {
         ErrorResponse errorResponse = new ErrorResponse(
                 Timestamp.from(Instant.now()),
-                HttpStatus.UNAUTHORIZED.value(),
-                "Unauthorized",
+                ex.getStatusCode().value(),
+                ex.getMessage(),
                 ex.getReason(),
                 null,
                 request.getRequestURI()
         );
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+        return ResponseEntity.status(ex.getStatusCode()).body(errorResponse);
     }
 
-
-    @ExceptionHandler(Exception.class)  // Catch any general exception
-    public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex, HttpServletRequest request) {
-        // Log the full stack trace
-        ex.printStackTrace();
-
+    @ExceptionHandler(InvalidRequestField.class)
+    public ResponseEntity<ErrorResponse> handleInvalidRequestBody(ResponseStatusException ex, HttpServletRequest request) {
         ErrorResponse errorResponse = new ErrorResponse(
                 Timestamp.from(Instant.now()),
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),  // Use 500 for internal errors
-                "Internal Server Error",
-                ex.getMessage(),  // Get the exception message
+                HttpStatus.BAD_REQUEST.value(),
+                "Bad Request",
+                ex.getReason(),
                 null,
                 request.getRequestURI()
         );
-
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
-
+    
+//    @ExceptionHandler(Exception.class)  // Catch any general exception
+//    public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex, HttpServletRequest request) {
+//        // Log the full stack trace
+//        ex.printStackTrace();
+//
+//        ErrorResponse errorResponse = new ErrorResponse(
+//                Timestamp.from(Instant.now()),
+//                HttpStatus.INTERNAL_SERVER_ERROR.value(),  // Use 500 for internal errors
+//                "Internal Server Error",
+//                ex.getMessage(),  // Get the exception message
+//                null,
+//                request.getRequestURI()
+//        );
+//
+//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+//    }
 
 }

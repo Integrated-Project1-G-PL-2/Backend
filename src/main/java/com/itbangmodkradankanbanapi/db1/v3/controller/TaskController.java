@@ -28,13 +28,13 @@ public class TaskController {
 
     //tested
     @GetMapping("")
-    public ResponseEntity<Object> getAllTaskOfBoard(@RequestParam(required = false) List<String> filterStatuses, @RequestParam(required = false) String sortBy, @RequestHeader("Authorization") String token, @PathVariable String id) {
+    public ResponseEntity<Object> getAllTaskOfBoard(@RequestParam(required = false) List<String> filterStatuses, @RequestParam(required = false) String sortBy, @RequestHeader(value = "Authorization", required = false) String token, @PathVariable String id) {
         return ResponseEntity.ok(listMapper.mapList(boardService.getAllTask(filterStatuses, sortBy, token, id), TaskDTO.class, mapper));
     }
 
     // tested
     @GetMapping("/{taskId}")
-    public ResponseEntity<Object> getTaskOfBoardById(@RequestHeader("Authorization") String token, @PathVariable String id, @PathVariable int taskId) {
+    public ResponseEntity<Object> getTaskOfBoardById(@RequestHeader(value = "Authorization", required = false) String token, @PathVariable String id, @PathVariable int taskId) {
         return ResponseEntity.ok(boardService.getTaskById(id, token, taskId));
     }
 
