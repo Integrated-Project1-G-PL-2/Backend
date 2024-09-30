@@ -51,9 +51,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             chain.doFilter(request, response);
             return;
         } else if (request.getServletPath().matches("/v3/boards/[\\w-]+.*") && request.getMethod().equals("GET")) {
-            String boardId = extractBoardIdFromPath(request.getServletPath());
-            Board board = boardService.getBoardById(boardId);
-
+            Board board = null;
+            try {
+                String boardId = extractBoardIdFromPath(request.getServletPath());
+                board = boardService.getBoardById(boardId);
+            }catch (ItemNotFoundException ex){
+                writeErrorResponse(response, HttpStatus.NOT_FOUND, "Board not found");
+            }
             if ("PUBLIC".equals(board.getVisibility().toString())) {
                 chain.doFilter(request, response);
                 return;
@@ -97,10 +101,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     return;
                 }
                 UserDetails userDetails = this.jwtUserDetailsService.loadUserByUsername(user.getUsername());
-                if (request.getServletPath().equals("/token")) {
-                    chain.doFilter(request, response);
-                    return;
-                }
                 if (jwtTokenUtil.validateToken(jwtToken, userDetails)) {
                     UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
                             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
@@ -110,7 +110,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             }
             chain.doFilter(request, response);
         } catch (Exception ex) {
-            writeErrorResponse(response, HttpStatus.INTERNAL_SERVER_ERROR, "An internal error occurred");
+            writeErrorResponse(response, HttpStatus.UNAUTHORIZED, "Jwt error");
         }
     }
 
@@ -130,6 +130,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.writeValue(response.getWriter(), errorResponse);
     }
+
 
 
     private String extractBoardIdFromPath(String path) {
