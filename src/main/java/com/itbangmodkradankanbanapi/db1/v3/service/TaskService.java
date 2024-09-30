@@ -68,12 +68,13 @@ public class TaskService {
     }
 
     @Transactional
-    public TaskDTO updateTask(Board board, Integer id, TaskDTO taskDTO) {
+    public TaskDTO updateTask(Board board, Integer id, TaskDTOForAdd taskDTO) {
         Task existingTaskV2 = repository.findByBoard_IdAndId(board.getId(), id).orElseThrow(
                 () -> new ItemNotFoundForUpdateAndDelete("NOT FOUND"));
         List<Status> allPossibleStatus = statusService.findAllStatus(board);
+        Status getStatus  = statusRepository.findById(taskDTO.getStatus()).orElseThrow(() -> new ItemNotFoundException("Status not found"));
         for (Status status : allPossibleStatus) {
-            if (status.getId().equals(taskDTO.getStatus().getId())) {
+            if (status.getId().equals(getStatus.getId())) {
                 existingTaskV2.setStatus(status);
             }
         }

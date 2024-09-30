@@ -184,7 +184,7 @@ public class BoardService {
         }
     }
 
-    public TaskDTO editTaskOfBoard(TaskDTO task, String token, String boardId, int taskId) {
+    public TaskDTO editTaskOfBoard(TaskDTOForAdd task, String token, String boardId, int taskId) {
         BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
         Board board = getBoardById(boardId);
         if (boardOfUser != null && canModify(boardOfUser)) {
