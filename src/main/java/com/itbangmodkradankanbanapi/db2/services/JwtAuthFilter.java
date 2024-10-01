@@ -55,11 +55,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             try {
                 String boardId = extractBoardIdFromPath(request.getServletPath());
                 board = boardService.getBoardById(boardId);
-            }catch (ItemNotFoundException ex){
+            } catch (ItemNotFoundException ex) {
                 writeErrorResponse(response, HttpStatus.NOT_FOUND, "Board not found");
             }
             if ("PUBLIC".equals(board.getVisibility().toString())) {
                 chain.doFilter(request, response);
+                return;
+            } else if (requestTokenHeader == null || !requestTokenHeader.startsWith("Bearer ")) {
+                writeErrorResponse(response, HttpStatus.FORBIDDEN, "Invalid token");
                 return;
             }
         }
@@ -130,7 +133,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.writeValue(response.getWriter(), errorResponse);
     }
-
 
 
     private String extractBoardIdFromPath(String path) {

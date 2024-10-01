@@ -29,6 +29,7 @@ public class TaskController {
     //tested
     @GetMapping("")
     public ResponseEntity<Object> getAllTaskOfBoard(@RequestParam(required = false) List<String> filterStatuses, @RequestParam(required = false) String sortBy, @RequestHeader(value = "Authorization", required = false) String token, @PathVariable String id) {
+        System.out.println("test");
         return ResponseEntity.ok(listMapper.mapList(boardService.getAllTask(filterStatuses, sortBy, token, id), TaskDTO.class, mapper));
     }
 
