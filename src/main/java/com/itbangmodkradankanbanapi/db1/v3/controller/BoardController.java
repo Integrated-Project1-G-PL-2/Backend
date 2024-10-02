@@ -40,6 +40,7 @@ public class BoardController {
     //tested
     @PatchMapping("/{id}")
     public ResponseEntity<Object> editVisibilityBoard(@Valid @RequestBody(required = false) BoardDTO boardDTO, @RequestHeader("Authorization") String token, @PathVariable String id) {
+        System.out.println("5555");
         if (boardDTO == null) {
             throw new InvalidRequestField(HttpStatus.BAD_REQUEST, "Invalid request body");
         }

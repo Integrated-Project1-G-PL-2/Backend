@@ -2,6 +2,7 @@ package com.itbangmodkradankanbanapi.db2.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itbangmodkradankanbanapi.db1.v3.entities.Board;
+import com.itbangmodkradankanbanapi.db1.v3.entities.BoardOfUser;
 import com.itbangmodkradankanbanapi.db1.v3.service.BoardService;
 import com.itbangmodkradankanbanapi.db2.entities.User;
 import com.itbangmodkradankanbanapi.db2.repositories.UserRepository;
@@ -105,6 +106,18 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 }
                 UserDetails userDetails = this.jwtUserDetailsService.loadUserByUsername(user.getUsername());
                 if (jwtTokenUtil.validateToken(jwtToken, userDetails)) {
+                    if (request.getServletPath().matches("/v3/boards/[\\w-]+.*")) {
+                        try {
+                            String boardId = extractBoardIdFromPath(request.getServletPath());
+                            BoardOfUser boardOfUser = boardService.validateUserAndBoard(jwtToken, boardId);
+                            if (boardOfUser == null || !boardService.canModify(boardOfUser)) {
+                                writeErrorResponse(response, HttpStatus.FORBIDDEN, "Can not modify board");
+                                return;
+                            }
+                        } catch (ItemNotFoundException ex) {
+                            writeErrorResponse(response, HttpStatus.NOT_FOUND, "Board not found");
+                        }
+                    }
                     UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
                             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                     usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

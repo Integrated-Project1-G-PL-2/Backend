@@ -117,6 +117,7 @@ public class BoardService {
     }
 
     public BoardDTO editBoard(BoardDTO boardDTO, String token, String boardId) {
+        System.out.println("test");
         BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
         Board board = getBoardById(boardId);
         if (boardOfUser != null && isOwner(boardOfUser)) {
@@ -233,7 +234,7 @@ public class BoardService {
         }
     }
 
-    private BoardOfUser validateUserAndBoard(String token, String boardId) {
+    public BoardOfUser validateUserAndBoard(String token, String boardId) {
         LocalUser localUser = getLocalUserFromToken(token);
         Board board = getBoardById(boardId);
         return boardOfUserRepository.findBoardOfUserByLocalUserAndBoard(localUser, board);
@@ -266,7 +267,7 @@ public class BoardService {
         return board.getVisibility().toString().equals("PUBLIC");
     }
 
-    private boolean canModify(BoardOfUser boardOfUser) {
+    public boolean canModify(BoardOfUser boardOfUser) {
         return boardOfUser.getRole().toString().equals("OWNER") || boardOfUser.getRole().toString().equals("COLLABORATOR");
     }
 
