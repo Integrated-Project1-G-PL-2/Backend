@@ -233,12 +233,12 @@ public class BoardService {
         }
     }
 
-    private BoardOfUser validateUserAndBoard(String token, String boardId) {
+    public BoardOfUser validateUserAndBoard(String token, String boardId) {
         LocalUser localUser = getLocalUserFromToken(token);
         Board board = getBoardById(boardId);
         return boardOfUserRepository.findBoardOfUserByLocalUserAndBoard(localUser, board);
     }
-
+    
     private BoardOfUser getBoardOfUser(String boardId) {
         Board board = getBoardById(boardId);
         return boardOfUserRepository.findBoardOfUserByBoardAndRole(board, BoardOfUser.Role.OWNER);
@@ -266,15 +266,15 @@ public class BoardService {
         return board.getVisibility().toString().equals("PUBLIC");
     }
 
-    private boolean canModify(BoardOfUser boardOfUser) {
+    public boolean canModify(BoardOfUser boardOfUser) {
         return boardOfUser.getRole().toString().equals("OWNER") || boardOfUser.getRole().toString().equals("COLLABORATOR");
     }
 
-    private boolean canAccess(BoardOfUser boardOfUser) {
+    public boolean canAccess(BoardOfUser boardOfUser) {
         return boardOfUser.getRole().toString().equals("OWNER") || boardOfUser.getRole().toString().equals("COLLABORATOR") || boardOfUser.getRole().toString().equals("VISITOR");
     }
 
-    private boolean isOwner(BoardOfUser boardOfUser) {
+    public boolean isOwner(BoardOfUser boardOfUser) {
         return boardOfUser.getRole().toString().equals("OWNER");
     }
 

@@ -126,7 +126,7 @@ public class JwtTokenUtil implements Serializable {
         final String username = getUsernameFromToken(token);
         final String oid = getOidFromToken(token);
         User.UserRole role = getRoleFromToken(token);
-        return userRepository.existsByUsernameAndOidAndRole(username, oid, role) && !isTokenExpired(token);
+        return userRepository.existsByUsernameAndOidAndRole(username, oid, role) && !isTokenExpired(token) && (userDetails != null);
     }
 
     public Boolean validateRefreshToken(String token) {
