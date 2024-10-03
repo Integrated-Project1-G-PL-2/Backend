@@ -51,7 +51,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         String oid = null;
         String jwtToken = null;
-
+        // token ถูก
         if (requestTokenHeader != null) {
             if (requestTokenHeader.startsWith("Bearer ")) {
                 jwtToken = requestTokenHeader.substring(7);
@@ -73,7 +73,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             }
         }
 
-        // OWNER
+
         if (oid != null) {
             User user = userRepository.findByOid(oid);
             if (user == null) {
@@ -81,14 +81,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             } else {
                 String username = user.getUsername();
                 try {
+                    // null when not owner and have boardId
                     UserDetails userDetails = this.jwtUserDetailsService.loadUserByUsername(username, jwtToken, boardId);
                     if (jwtTokenUtil.validateToken(jwtToken, userDetails)) {
+                        // token valid and userDetails not null (owner)
                         UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                         SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
                     }
-
                 } catch (ItemNotFoundException ex) {
                     writeErrorResponse(response, HttpStatus.NOT_FOUND, ex.getMessage());
+                    return;
                 }
             }
         }

@@ -27,6 +27,9 @@ public class JwtAnonymousAuthFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
+//        System.out.println("check");
+//        System.out.println(SecurityContextHolder.getContext().getAuthentication());
+//        System.out.println(request.getAttribute("Error-Message"));
         //PUBLIC ACCESS CHECK
         if (HttpMethod.GET.matches(request.getMethod()) && SecurityContextHolder.getContext().getAuthentication() == null && request.getAttribute("Error-Message") == null) {
             List<GrantedAuthority> authorities = new LinkedList<>();
@@ -36,7 +39,7 @@ public class JwtAnonymousAuthFilter extends OncePerRequestFilter {
                 authorities.add(new SimpleGrantedAuthority("PUBLIC_ACCESS"));
             } else {
                 authorities.add(new SimpleGrantedAuthority("ANONYMOUS"));
-                request.setAttribute("Error-Message", "Unauthorized access");
+                request.setAttribute("Error-Message", "FORBIDDEN");
             }
             SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(null, null, authorities));
         }
