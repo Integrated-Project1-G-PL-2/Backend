@@ -30,8 +30,8 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
 
         ErrorResponse errorResponse = new ErrorResponse(
                 Timestamp.from(Instant.now()),
-                HttpStatus.UNAUTHORIZED.value(),
-                HttpStatus.UNAUTHORIZED.getReasonPhrase(),
+                HttpStatus.FORBIDDEN.value(),
+                HttpStatus.FORBIDDEN.getReasonPhrase(),
                 errorMessage,
                 request.getRequestURI(),
                 null

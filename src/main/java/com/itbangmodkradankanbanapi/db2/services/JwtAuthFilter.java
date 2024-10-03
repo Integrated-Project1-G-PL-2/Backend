@@ -83,11 +83,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 try {
                     UserDetails userDetails = this.jwtUserDetailsService.loadUserByUsername(username, jwtToken, boardId);
                     if (jwtTokenUtil.validateToken(jwtToken, userDetails)) {
-                        System.out.println("valid");
                         UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                         SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
                     }
-                    
+
                 } catch (ItemNotFoundException ex) {
                     writeErrorResponse(response, HttpStatus.NOT_FOUND, ex.getMessage());
                 }
@@ -117,7 +116,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private String extractBoardIdFromPath(String path) {
         String[] parts = path.split("/");
         if (parts.length > 3 && "boards".equals(parts[2])) {
-            System.out.println();
             return parts[3];
         }
         return null;
