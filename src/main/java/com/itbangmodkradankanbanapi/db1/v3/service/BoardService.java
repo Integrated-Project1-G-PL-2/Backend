@@ -49,55 +49,59 @@ public class BoardService {
 
 
     public List<Task> getAllTask(List<String> filterStatuses, String sortBy, String token, String boardId) {
-        Board board = getBoardById(boardId);
-        if (isPublicAccessibility(board)) {
-            return taskService.findAllTask(filterStatuses, sortBy, boardId);
-        }
-        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
-        if (boardOfUser != null && canAccess(boardOfUser)) {
-            return taskService.findAllTask(filterStatuses, sortBy, boardId);
-        } else {
-            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
-        }
+//        Board board = getBoardById(boardId);
+//        if (isPublicAccessibility(board)) {
+//            return taskService.findAllTask(filterStatuses, sortBy, boardId);
+//        }
+//        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
+//        if (boardOfUser != null && canAccess(boardOfUser)) {
+//            return taskService.findAllTask(filterStatuses, sortBy, boardId);
+//        } else {
+//            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
+//        }
+        return taskService.findAllTask(filterStatuses, sortBy, boardId);
     }
 
     public List<Status> getAllStatus(String token, String boardId) {
         Board board = getBoardById(boardId);
-        if (isPublicAccessibility(board)) {
-            return statusService.findAllStatus(board);
-        }
-        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
-        if (boardOfUser != null && canAccess(boardOfUser)) {
-            return statusService.findAllStatus(board);
-        } else {
-            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
-        }
+//        if (isPublicAccessibility(board)) {
+//            return statusService.findAllStatus(board);
+//        }
+//        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
+//        if (boardOfUser != null && canAccess(boardOfUser)) {
+//            return statusService.findAllStatus(board);
+//        } else {
+//            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
+//        }
+        return statusService.findAllStatus(board);
     }
 
     public Task getTaskById(String boardId, String token, int taskId) {
-        Board board = getBoardById(boardId);
-        if (isPublicAccessibility(board)) {
-            return taskService.findTaskById(boardId, taskId);
-        }
-        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
-        if (boardOfUser != null && canAccess(boardOfUser)) {
-            return taskService.findTaskById(boardId, taskId);
-        } else {
-            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
-        }
+//        Board board = getBoardById(boardId);
+//        if (isPublicAccessibility(board)) {
+//            return taskService.findTaskById(boardId, taskId);
+//        }
+//        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
+//        if (boardOfUser != null && canAccess(boardOfUser)) {
+//            return taskService.findTaskById(boardId, taskId);
+//        } else {
+//            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
+//        }
+        return taskService.findTaskById(boardId, taskId);
     }
 
     public Status getStatusById(String boardId, String token, int statusId) {
         Board board = getBoardById(boardId);
-        if (isPublicAccessibility(board)) {
-            return statusService.findStatusById(board, statusId);
-        }
-        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
-        if (boardOfUser != null && canAccess(boardOfUser)) {
-            return statusService.findStatusById(board, statusId);
-        } else {
-            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
-        }
+//        if (isPublicAccessibility(board)) {
+//            return statusService.findStatusById(board, statusId);
+//        }
+//        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
+//        if (boardOfUser != null && canAccess(boardOfUser)) {
+//            return statusService.findStatusById(board, statusId);
+//        } else {
+//            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
+//        }
+        return statusService.findStatusById(board, statusId);
     }
 
     public BoardDTO createNewBoard(BoardDTO boardDTO, String token) {
@@ -117,15 +121,20 @@ public class BoardService {
     }
 
     public BoardDTO editBoard(BoardDTO boardDTO, String token, String boardId) {
-        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
+//        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
+//        Board board = getBoardById(boardId);
+//        if (boardOfUser != null && isOwner(boardOfUser)) {
+//            board.setVisibility(Board.Visibility.valueOf(boardDTO.getVisibility()));
+//            board = boardRepository.save(board);
+//            return mapper.map(board, BoardDTO.class);
+//        } else {
+//            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
+//        }
+
         Board board = getBoardById(boardId);
-        if (boardOfUser != null && isOwner(boardOfUser)) {
-            board.setVisibility(Board.Visibility.valueOf(boardDTO.getVisibility()));
-            board = boardRepository.save(board);
-            return mapper.map(board, BoardDTO.class);
-        } else {
-            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
-        }
+        board.setVisibility(Board.Visibility.valueOf(boardDTO.getVisibility()));
+        board = boardRepository.save(board);
+        return mapper.map(board, BoardDTO.class);
 
     }
 
@@ -143,20 +152,31 @@ public class BoardService {
 //    }
 
     public BoardDTO getBoardById(String token, String boardId) {
+//        Board board = getBoardById(boardId);
+//        if (isPublicAccessibility(board)) {
+//            BoardDTO newBoard = mapper.map(board, BoardDTO.class);
+//            newBoard.setOwner(getBoardOfUser(boardId).getLocalUser());
+//            return newBoard;
+//        }
+//        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
+//        if (boardOfUser != null && canAccess(boardOfUser)) {
+//            BoardDTO newBoard = mapper.map(board, BoardDTO.class);
+//            newBoard.setOwner(getBoardOfUser(boardId).getLocalUser());
+//            return newBoard;
+//        } else {
+//            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
+//        }
         Board board = getBoardById(boardId);
         if (isPublicAccessibility(board)) {
             BoardDTO newBoard = mapper.map(board, BoardDTO.class);
             newBoard.setOwner(getBoardOfUser(boardId).getLocalUser());
             return newBoard;
         }
-        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
-        if (boardOfUser != null && canAccess(boardOfUser)) {
-            BoardDTO newBoard = mapper.map(board, BoardDTO.class);
-            newBoard.setOwner(getBoardOfUser(boardId).getLocalUser());
-            return newBoard;
-        } else {
-            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
-        }
+
+        BoardDTO newBoard = mapper.map(board, BoardDTO.class);
+        newBoard.setOwner(getBoardOfUser(boardId).getLocalUser());
+        return newBoard;
+
     }
 
     public List<BoardOfUser> getAllBoard(String token) {
@@ -165,72 +185,79 @@ public class BoardService {
     }
 
     public TaskDTO addNewTaskToBoard(TaskDTOForAdd task, String token, String boardId) {
-        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
+//        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
         Board board = getBoardById(boardId);
-        if (boardOfUser != null && canModify(boardOfUser)) {
-            return taskService.createNewTask(task, board);
-        } else {
-            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
-        }
+//        if (boardOfUser != null && canModify(boardOfUser)) {
+//            return taskService.createNewTask(task, board);
+//        } else {
+//            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
+//        }
+        return taskService.createNewTask(task, board);
     }
 
     public StatusDTO addNewStatusToBoard(StatusDTO statusDTO, String token, String boardId) {
-        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
+//        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
         Board board = getBoardById(boardId);
-        if (boardOfUser != null && canModify(boardOfUser)) {
-            return statusService.createNewStatus(statusDTO, board);
-        } else {
-            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
-        }
+//        if (boardOfUser != null && canModify(boardOfUser)) {
+//            return statusService.createNewStatus(statusDTO, board);
+//        } else {
+//            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
+//        }
+        return statusService.createNewStatus(statusDTO, board);
     }
 
     public TaskDTO editTaskOfBoard(TaskDTOForAdd task, String token, String boardId, int taskId) {
-        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
+//        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
         Board board = getBoardById(boardId);
-        if (boardOfUser != null && canModify(boardOfUser)) {
-            return taskService.updateTask(board, taskId, task);
-        } else {
-            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
-        }
+//        if (boardOfUser != null && canModify(boardOfUser)) {
+//            return taskService.updateTask(board, taskId, task);
+//        } else {
+//            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
+//        }
+        return taskService.updateTask(board, taskId, task);
     }
 
     public StatusDTO editStatusOfBoard(StatusDTO statusDTO, String token, String boardId, int statusId) {
-        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
+//        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
         Board board = getBoardById(boardId);
-        if (boardOfUser != null && canModify(boardOfUser)) {
-            return statusService.updateStatus(board, statusId, statusDTO);
-        } else {
-            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
-        }
+//        if (boardOfUser != null && canModify(boardOfUser)) {
+//            return statusService.updateStatus(board, statusId, statusDTO);
+//        } else {
+//            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
+//        }
+        return statusService.updateStatus(board, statusId, statusDTO);
     }
 
     public TaskDTO deleteTaskOfBoard(String token, String boardId, int taskId) {
-        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
-        if (boardOfUser != null && canModify(boardOfUser)) {
-            return taskService.deleteTask(boardId, taskId);
-        } else {
-            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
-        }
+//        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
+//        if (boardOfUser != null && canModify(boardOfUser)) {
+//            return taskService.deleteTask(boardId, taskId);
+//        } else {
+//            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
+//        }
+        return taskService.deleteTask(boardId, taskId);
     }
 
     public void deleteStatusOfBoard(String token, String boardId, int statusId) {
-        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
+//        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
         Board board = getBoardById(boardId);
-        if (boardOfUser != null && canModify(boardOfUser)) {
-            statusService.deleteStatus(board, statusId);
-        } else {
-            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
-        }
+//        if (boardOfUser != null && canModify(boardOfUser)) {
+//            statusService.deleteStatus(board, statusId);
+//        } else {
+//            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
+//        }
+        statusService.deleteStatus(board, statusId);
     }
 
     public void deleteThenTranferStatusOfBoard(String token, String boardId, int statusId, int newStatusId) {
-        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
+//        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
         Board board = getBoardById(boardId);
-        if (boardOfUser != null && canModify(boardOfUser)) {
-            statusService.deleteStatusAndTransfer(board, statusId, newStatusId);
-        } else {
-            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
-        }
+//        if (boardOfUser != null && canModify(boardOfUser)) {
+//            statusService.deleteStatusAndTransfer(board, statusId, newStatusId);
+//        } else {
+//            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
+//        }
+        statusService.deleteStatusAndTransfer(board, statusId, newStatusId);
     }
 
     public BoardOfUser validateUserAndBoard(String token, String boardId) {
@@ -238,7 +265,7 @@ public class BoardService {
         Board board = getBoardById(boardId);
         return boardOfUserRepository.findBoardOfUserByLocalUserAndBoard(localUser, board);
     }
-    
+
     private BoardOfUser getBoardOfUser(String boardId) {
         Board board = getBoardById(boardId);
         return boardOfUserRepository.findBoardOfUserByBoardAndRole(board, BoardOfUser.Role.OWNER);

@@ -81,6 +81,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             } else {
                 String username = user.getUsername();
                 try {
+                    if (request.getServletPath().equals("/token")) {
+                        chain.doFilter(request, response);
+                        return;
+                    }
                     // null when not owner and have boardId
                     UserDetails userDetails = this.jwtUserDetailsService.loadUserByUsername(username, jwtToken, boardId);
                     if (jwtTokenUtil.validateToken(jwtToken, userDetails)) {
