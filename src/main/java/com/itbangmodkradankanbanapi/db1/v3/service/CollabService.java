@@ -42,4 +42,7 @@ public class CollabService {
         return boardOfUserRepository.save(boardOfUser);
     }
 
+    public void deleteCollabById(BoardOfUser boardOfUser) {
+        boardOfUserRepository.delete(boardOfUser);
+    }
 }

@@ -10,6 +10,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @RestController
 @RequestMapping("/v3/boards")
 public class BoardController {
@@ -60,6 +63,17 @@ public class BoardController {
     @GetMapping("/{id}/collabs/{collabId}")
     public ResponseEntity<Object> getCollabOfBoardById(@RequestHeader("Authorization") String token, @PathVariable String id, @PathVariable String collabId) {
         return ResponseEntity.ok(boardService.getCollabOfBoard(id, collabId));
+    }
+
+    @PatchMapping("/{id}/collabs/{collabId}")
+    public ResponseEntity<Object> editCollabOfBoardById(@RequestHeader("Authorization") String token, @Valid @RequestBody CollabDTORequest collabDTORequest, @PathVariable String id, @PathVariable String collabId) {
+        return ResponseEntity.ok(boardService.editCollab(collabDTORequest, id, collabId));
+    }
+
+    @DeleteMapping("/{id}/collabs/{collabId}")
+    public ResponseEntity<Object> deleteCollabOfBoardById(@RequestHeader("Authorization") String token, @PathVariable String id, @PathVariable String collabId) {
+        boardService.deleteCollab(id, collabId);
+        return ResponseEntity.status(HttpStatus.OK).body(null);
     }
 
 }

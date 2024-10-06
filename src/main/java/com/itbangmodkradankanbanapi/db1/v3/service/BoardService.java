@@ -105,7 +105,7 @@ public class BoardService {
     }
 
 
-    public BoardOfUser addNewCollab(String token, CollabDTORequest collabDTORequest, String boardId) {
+    public CollabDTOResponse addNewCollab(String token, CollabDTORequest collabDTORequest, String boardId) {
         User userFromEmail = getUserByEmail(collabDTORequest.getEmail());
         LocalUser localUserFromEmail = getLocalById(userFromEmail.getOid()).orElse(null);
         if (localUserFromEmail == null && userFromEmail != null) {
@@ -120,7 +120,34 @@ public class BoardService {
         if (boardOfUser != null) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "The user is already the collaborator of this board");
         }
-        return collabService.addNewCollab(board, localUserFromEmail, collabDTORequest.getAccess_right());
+        BoardOfUser boardOfUserResult = collabService.addNewCollab(board, localUserFromEmail, collabDTORequest.getAccess_right());
+        return new CollabDTOResponse(boardOfUserResult.getBoard().getId(), boardOfUserResult.getLocalUser().getName(), boardOfUserResult.getLocalUser().getEmail(), boardOfUserResult.getAddedOn());
+    }
+
+    public CollabDTOResponse editCollab(CollabDTORequest collabDTORequest, String boardId, String collabId) {
+        Board board = getBoardById(boardId);
+        LocalUser user = getLocalById(collabId).orElseThrow(() -> new ItemNotFoundException("Collab oid '" + collabId + "' not found"));
+        BoardOfUser boardOfUser = collabService.getCollabById(board, user);
+        if (boardOfUser != null && !boardOfUser.getRole().equals(BoardOfUser.Role.OWNER)) {
+            if (collabDTORequest.getAccess_right().equals("WRITE")) {
+                boardOfUser.setRole(BoardOfUser.Role.COLLABORATOR);
+            } else {
+                boardOfUser.setRole(BoardOfUser.Role.VISITOR);
+            }
+            return new CollabDTOResponse(boardOfUserRepository.save(boardOfUser).getRole());
+        }
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can not do this action");
+    }
+
+    public void deleteCollab(String boardId, String collabId) {
+        Board board = getBoardById(boardId);
+        LocalUser user = getLocalById(collabId).orElseThrow(() -> new ItemNotFoundException("Collab oid '" + collabId + "' not found"));
+        BoardOfUser boardOfUser = collabService.getCollabById(board, user);
+        if (boardOfUser != null && !boardOfUser.getRole().equals(BoardOfUser.Role.OWNER)) {
+            collabService.deleteCollabById(boardOfUser);
+            return;
+        }
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can not do this action");
     }
 
     public BoardDTO editBoard(BoardDTO boardDTO, String token, String boardId) {
