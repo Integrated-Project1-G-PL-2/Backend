@@ -81,7 +81,21 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
-    
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ErrorResponse> handleNormalResponseStatusException(ResponseStatusException ex, HttpServletRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                Timestamp.from(Instant.now()),
+                ex.getStatusCode().value(),
+                ex.getStatusCode().toString(),
+                ex.getReason(),
+                null,
+                request.getRequestURI()
+        );
+        return ResponseEntity.status(ex.getStatusCode().value()).body(errorResponse);
+    }
+
+
 //    @ExceptionHandler(Exception.class)  // Catch any general exception
 //    public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex, HttpServletRequest request) {
 //        // Log the full stack trace

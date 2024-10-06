@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.ZonedDateTime;
 
 @Data
 @Entity
@@ -27,6 +28,9 @@ public class BoardOfUser {
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false)
     private Role role;
+
+    @Column(name = "addedOn", insertable = false, updatable = false)
+    private ZonedDateTime addedOn;
 
     public BoardOfUser(LocalUser localUser, Board board, Role role) {
         this.id = new BoardUserKey();

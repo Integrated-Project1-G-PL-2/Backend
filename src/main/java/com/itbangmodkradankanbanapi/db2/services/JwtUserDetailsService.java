@@ -58,8 +58,12 @@ public class JwtUserDetailsService implements UserDetailsService {
         BoardOfUser boardOfUser = boardService.validateUserAndBoard(token, boardId);
         if (boardOfUser != null && boardService.isOwner(boardOfUser)) {
             roles.add(new SimpleGrantedAuthority("OWNER"));
-        }else if (boardService.isPublicAccessibility(boardService.getBoardById(boardId))) {
-            roles.add(new SimpleGrantedAuthority("PUBLIC_ACCESS"));
+        } else if (boardOfUser != null && boardService.canModify(boardOfUser)) {
+            roles.add(new SimpleGrantedAuthority("COLLABORATOR-WRITER"));
+        } else if (boardOfUser != null && boardService.canAccess(boardOfUser)) {
+            roles.add(new SimpleGrantedAuthority("COLLABORATOR-READER"));
+        } else if (boardService.isPublicAccessibility(boardService.getBoardById(boardId))) {
+            roles.add(new SimpleGrantedAuthority("PUBLIC-ACCESS"));
         }
         return new AuthUser(user.getUsername(), user.getPassword(), roles);
     }

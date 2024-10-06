@@ -40,13 +40,13 @@ public class JwtAnonymousAuthFilter extends OncePerRequestFilter {
             try {
                 Board board = boardService.getBoardById(boardId);
                 if (boardService.isPublicAccessibility(board)) {
-                    authorities.add(new SimpleGrantedAuthority("PUBLIC_ACCESS"));
+                    authorities.add(new SimpleGrantedAuthority("PUBLIC-ACCESS"));
                 } else {
                     authorities.add(new SimpleGrantedAuthority("ANONYMOUS"));
                     request.setAttribute("Error-Message", "FORBIDDEN");
                 }
-            }catch (ItemNotFoundException ex){
-                writeErrorResponse(response,HttpStatus.NOT_FOUND,ex.getMessage());
+            } catch (ItemNotFoundException ex) {
+                writeErrorResponse(response, HttpStatus.NOT_FOUND, ex.getMessage());
                 return;
             }
 

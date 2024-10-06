@@ -1,6 +1,7 @@
 package com.itbangmodkradankanbanapi.db1.v3.controller;
 
 import com.itbangmodkradankanbanapi.db1.v3.dto.BoardDTO;
+import com.itbangmodkradankanbanapi.db1.v3.dto.CollabDTO;
 import com.itbangmodkradankanbanapi.db1.v3.service.BoardService;
 import com.itbangmodkradankanbanapi.exception.InvalidRequestField;
 import jakarta.validation.Valid;
@@ -46,12 +47,19 @@ public class BoardController {
         return ResponseEntity.ok(boardService.editBoard(boardDTO, token, id));
     }
 
-//    @PostMapping("/{id}")
-//    public ResponseEntity<Object> grantPrivilegeToBoard(@Valid @RequestBody(required = false) BoardDTO boardDTO, @RequestHeader("Authorization") String token, @PathVariable String id) {
-//        if (boardDTO == null) {
-//            throw new InvalidRequestField(HttpStatus.BAD_REQUEST, "Invalid request body");
-//        }
-//        return ResponseEntity.ok(boardService.grantPrivilegeToBoard(boardDTO, token, id));
-//    }
+    @PostMapping("/{id}/collabs")
+    public ResponseEntity<Object> addCollabToBoard(@RequestHeader("Authorization") String token, @Valid @RequestBody CollabDTO collabDTO, @PathVariable String id) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(boardService.addNewCollab(token, collabDTO, id));
+    }
+
+    @GetMapping("/{id}/collabs")
+    public ResponseEntity<Object> getAllCollabOfBoard(@RequestHeader("Authorization") String token, @PathVariable String id) {
+        return ResponseEntity.ok(boardService.getAllCollabOfBoard(id));
+    }
+
+    @GetMapping("/{id}/collabs/{collabId}")
+    public ResponseEntity<Object> getCollabOfBoardById(@RequestHeader("Authorization") String token, @PathVariable String id, @PathVariable String collabId) {
+        return ResponseEntity.ok(boardService.getCollabOfBoard(id, collabId));
+    }
 
 }
