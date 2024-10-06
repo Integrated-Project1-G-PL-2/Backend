@@ -19,6 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -121,7 +122,7 @@ public class BoardService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "The user is already the collaborator of this board");
         }
         BoardOfUser boardOfUserResult = collabService.addNewCollab(board, localUserFromEmail, collabDTORequest.getAccess_right());
-        return new CollabDTOResponse(boardOfUserResult.getBoard().getId(), boardOfUserResult.getLocalUser().getName(), boardOfUserResult.getLocalUser().getEmail(), boardOfUserResult.getAddedOn());
+        return new CollabDTOResponse(boardOfUserResult.getLocalUser().getOid(), boardOfUserResult.getLocalUser().getName(), boardOfUserResult.getLocalUser().getEmail(), boardOfUserResult.getRole(), boardOfUserResult.getAddedOn());
     }
 
     public CollabDTOResponse editCollab(CollabDTORequest collabDTORequest, String boardId, String collabId) {
@@ -162,24 +163,49 @@ public class BoardService {
         Board board = getBoardById(boardId);
         if (isPublicAccessibility(board)) {
             BoardDTO newBoard = mapper.map(board, BoardDTO.class);
-            newBoard.setOwner(getBoardOfUser(boardId).getLocalUser());
+            newBoard.setOwner(getBoardOfUserThatIsOwner(boardId).getLocalUser());
             return newBoard;
         }
 
         BoardDTO newBoard = mapper.map(board, BoardDTO.class);
-        newBoard.setOwner(getBoardOfUser(boardId).getLocalUser());
+        newBoard.setOwner(getBoardOfUserThatIsOwner(boardId).getLocalUser());
         return newBoard;
 
     }
 
     public List<BoardOfUser> getAllBoard(String token) {
-        LocalUser localUser = localUserRepository.findById(getUserFromToken(token).getOid()).orElseThrow(() -> new ItemNotFoundException("User not found"));
+        LocalUser localUser = localUserRepository.findById(getUserFromToken(token).getOid())
+                .orElseThrow(() -> new ItemNotFoundException("User not found"));
+
         List<BoardOfUser> result = new ArrayList<>();
-        result.addAll(boardOfUserRepository.findAllByLocalUserAndRole(localUser, BoardOfUser.Role.COLLABORATOR));
-        result.addAll(boardOfUserRepository.findAllByLocalUserAndRole(localUser, BoardOfUser.Role.VISITOR));
-        result.addAll(boardOfUserRepository.findAllByLocalUserAndRole(localUser, BoardOfUser.Role.OWNER));
+
+        List<BoardOfUser> ownerBoards = boardOfUserRepository.findAllByLocalUserAndRole(localUser, BoardOfUser.Role.OWNER);
+        List<BoardOfUser> collaboratorBoards = boardOfUserRepository.findAllByLocalUserAndRole(localUser, BoardOfUser.Role.COLLABORATOR);
+        List<BoardOfUser> visitorBoards = boardOfUserRepository.findAllByLocalUserAndRole(localUser, BoardOfUser.Role.VISITOR);
+
+        Function<BoardOfUser, BoardOfUser> replaceWithOwner = boardOfUser -> {
+            LocalUser owner = boardOfUserRepository
+                    .findBoardOfUserByBoardAndRole(boardOfUser.getBoard(), BoardOfUser.Role.OWNER)
+                    .get(0)
+                    .getLocalUser();
+            boardOfUser.setLocalUser(owner);
+            return boardOfUser;
+        };
+
+        List<BoardOfUser> collaboratorResult = collaboratorBoards.stream()
+                .map(replaceWithOwner)
+                .collect(Collectors.toList());
+
+        List<BoardOfUser> visitorResult = visitorBoards.stream()
+                .map(replaceWithOwner)
+                .collect(Collectors.toList());
+
+        result.addAll(ownerBoards);
+        result.addAll(collaboratorResult);
+        result.addAll(visitorResult);
         return result;
     }
+
 
     public TaskDTO addNewTaskToBoard(TaskDTOForAdd task, String token, String boardId) {
         Board board = getBoardById(boardId);
@@ -221,7 +247,7 @@ public class BoardService {
         return boardOfUserRepository.findBoardOfUserByLocalUserAndBoard(localUser, board);
     }
 
-    private BoardOfUser getBoardOfUser(String boardId) {
+    private BoardOfUser getBoardOfUserThatIsOwner(String boardId) {
         Board board = getBoardById(boardId);
         return boardOfUserRepository.findBoardOfUserByBoardAndRole(board, BoardOfUser.Role.OWNER).get(0);
     }
@@ -271,6 +297,4 @@ public class BoardService {
     public boolean isOwner(BoardOfUser boardOfUser) {
         return boardOfUser.getRole().toString().equals("OWNER");
     }
-
-
 }
