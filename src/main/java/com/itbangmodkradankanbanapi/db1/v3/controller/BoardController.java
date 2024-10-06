@@ -1,7 +1,7 @@
 package com.itbangmodkradankanbanapi.db1.v3.controller;
 
 import com.itbangmodkradankanbanapi.db1.v3.dto.BoardDTO;
-import com.itbangmodkradankanbanapi.db1.v3.dto.CollabDTO;
+import com.itbangmodkradankanbanapi.db1.v3.dto.CollabDTORequest;
 import com.itbangmodkradankanbanapi.db1.v3.service.BoardService;
 import com.itbangmodkradankanbanapi.exception.InvalidRequestField;
 import jakarta.validation.Valid;
@@ -48,8 +48,8 @@ public class BoardController {
     }
 
     @PostMapping("/{id}/collabs")
-    public ResponseEntity<Object> addCollabToBoard(@RequestHeader("Authorization") String token, @Valid @RequestBody CollabDTO collabDTO, @PathVariable String id) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(boardService.addNewCollab(token, collabDTO, id));
+    public ResponseEntity<Object> addCollabToBoard(@RequestHeader("Authorization") String token, @Valid @RequestBody CollabDTORequest collabDTORequest, @PathVariable String id) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(boardService.addNewCollab(token, collabDTORequest, id));
     }
 
     @GetMapping("/{id}/collabs")

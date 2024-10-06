@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-public class CollabDTO {
+public class CollabDTORequest {
 
     @Size(max = 50)
     @NotBlank

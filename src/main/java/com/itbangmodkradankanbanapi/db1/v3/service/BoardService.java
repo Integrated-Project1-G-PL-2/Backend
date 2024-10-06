@@ -1,5 +1,6 @@
 package com.itbangmodkradankanbanapi.db1.v3.service;
 
+import com.itbangmodkradankanbanapi.db1.ListMapper;
 import com.itbangmodkradankanbanapi.db1.v3.dto.*;
 import com.itbangmodkradankanbanapi.db1.v3.entities.*;
 import com.itbangmodkradankanbanapi.db1.v3.repositories.BoardOfUserRepository;
@@ -9,15 +10,16 @@ import com.itbangmodkradankanbanapi.db2.entities.User;
 import com.itbangmodkradankanbanapi.db2.repositories.UserRepository;
 import com.itbangmodkradankanbanapi.db2.services.JwtTokenUtil;
 import com.itbangmodkradankanbanapi.exception.ItemNotFoundException;
-import com.itbangmodkradankanbanapi.exception.UnauthorizeAccessException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class BoardService {
@@ -51,14 +53,18 @@ public class BoardService {
     @Autowired
     private ModelMapper mapper;
 
+    @Autowired
+    private ListMapper listMapper;
+
 
     public List<Task> getAllTask(List<String> filterStatuses, String sortBy, String token, String boardId) {
         return taskService.findAllTask(filterStatuses, sortBy, boardId);
     }
 
-    public List<BoardOfUser> getAllCollabOfBoard(String boardId) {
+    public List<CollabDTOResponse> getAllCollabOfBoard(String boardId) {
         Board board = getBoardById(boardId);
-        return collabService.getAllCollab(board);
+        List<BoardOfUser> boardOfUsers = collabService.getAllCollab(board);
+        return boardOfUsers.stream().map(element -> new CollabDTOResponse(element.getLocalUser().getOid(), element.getLocalUser().getName(), element.getLocalUser().getEmail(), element.getRole(), element.getAddedOn())).toList();
     }
 
     public List<Status> getAllStatus(String token, String boardId) {
@@ -70,12 +76,12 @@ public class BoardService {
         return taskService.findTaskById(boardId, taskId);
     }
 
-    public BoardOfUser getCollabOfBoard(String boardId, String collabId) {
+    public CollabDTOResponse getCollabOfBoard(String boardId, String collabId) {
         Board board = getBoardById(boardId);
         LocalUser user = getLocalById(collabId).orElseThrow(() -> new ItemNotFoundException("Collab oid '" + collabId + "' not found"));
-        return collabService.getCollabById(board, user);
+        BoardOfUser boardOfUser = collabService.getCollabById(board, user);
+        return new CollabDTOResponse(boardOfUser.getLocalUser().getOid(), boardOfUser.getLocalUser().getName(), boardOfUser.getLocalUser().getEmail(), boardOfUser.getRole(), boardOfUser.getAddedOn());
     }
-
 
     public Status getStatusById(String boardId, String token, int statusId) {
         Board board = getBoardById(boardId);
@@ -99,8 +105,8 @@ public class BoardService {
     }
 
 
-    public BoardOfUser addNewCollab(String token, CollabDTO collabDTO, String boardId) {
-        User userFromEmail = getUserByEmail(collabDTO.getEmail());
+    public BoardOfUser addNewCollab(String token, CollabDTORequest collabDTORequest, String boardId) {
+        User userFromEmail = getUserByEmail(collabDTORequest.getEmail());
         LocalUser localUserFromEmail = getLocalById(userFromEmail.getOid()).orElse(null);
         if (localUserFromEmail == null && userFromEmail != null) {
             localUserFromEmail = userLocalService.addLocalUser(userFromEmail);
@@ -114,7 +120,7 @@ public class BoardService {
         if (boardOfUser != null) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "The user is already the collaborator of this board");
         }
-        return collabService.addNewCollab(board, localUserFromEmail, collabDTO.getAccess_right());
+        return collabService.addNewCollab(board, localUserFromEmail, collabDTORequest.getAccess_right());
     }
 
     public BoardDTO editBoard(BoardDTO boardDTO, String token, String boardId) {
@@ -141,7 +147,11 @@ public class BoardService {
 
     public List<BoardOfUser> getAllBoard(String token) {
         LocalUser localUser = localUserRepository.findById(getUserFromToken(token).getOid()).orElseThrow(() -> new ItemNotFoundException("User not found"));
-        return boardOfUserRepository.findAllByLocalUserAndRole(localUser, BoardOfUser.Role.OWNER);
+        List<BoardOfUser> result = new ArrayList<>();
+        result.addAll(boardOfUserRepository.findAllByLocalUserAndRole(localUser, BoardOfUser.Role.COLLABORATOR));
+        result.addAll(boardOfUserRepository.findAllByLocalUserAndRole(localUser, BoardOfUser.Role.VISITOR));
+        result.addAll(boardOfUserRepository.findAllByLocalUserAndRole(localUser, BoardOfUser.Role.OWNER));
+        return result;
     }
 
     public TaskDTO addNewTaskToBoard(TaskDTOForAdd task, String token, String boardId) {
