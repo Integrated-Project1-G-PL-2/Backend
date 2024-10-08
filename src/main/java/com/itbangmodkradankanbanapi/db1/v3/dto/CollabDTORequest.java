@@ -9,7 +9,6 @@ import lombok.Data;
 public class CollabDTORequest {
 
     @Size(max = 50)
-    @NotBlank
     String email;
     @Pattern(regexp = "WRITE|READ", message = "Access_right must be either 'WRITE' or 'READ'")
     String access_right;

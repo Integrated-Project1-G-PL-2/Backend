@@ -135,7 +135,8 @@ public class BoardService {
             } else {
                 boardOfUser.setRole(BoardOfUser.Role.VISITOR);
             }
-            return new CollabDTOResponse(boardOfUserRepository.save(boardOfUser).getRole());
+            BoardOfUser boardOfUserResult = boardOfUserRepository.save(boardOfUser);
+            return new CollabDTOResponse(boardOfUserResult.getLocalUser().getOid(), boardOfUserResult.getLocalUser().getName(), boardOfUserResult.getLocalUser().getEmail(), boardOfUserResult.getRole(), boardOfUserResult.getAddedOn());
         }
         throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can not do this action");
     }
