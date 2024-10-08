@@ -52,6 +52,7 @@ public class WebSecurityConfig {
                                 .requestMatchers(HttpMethod.POST, "/v3/boards").hasAuthority("OWNER")
                                 .requestMatchers(HttpMethod.POST, "/v3/boards/{id}/collabs").hasAuthority("OWNER")
                                 .requestMatchers(HttpMethod.PATCH, "/v3/boards/{id}").hasAuthority("OWNER")
+                                .requestMatchers(HttpMethod.DELETE, "/v3/boards/{id}/collabs/{collabId}").hasAnyAuthority("OWNER", "COLLABORATOR-WRITER", "COLLABORATOR-READER")
                                 .anyRequest().hasAnyAuthority("OWNER", "COLLABORATOR-WRITER")
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
