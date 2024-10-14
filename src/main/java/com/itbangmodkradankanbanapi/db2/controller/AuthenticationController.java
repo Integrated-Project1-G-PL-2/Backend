@@ -79,18 +79,23 @@ public class AuthenticationController {
     }
 
     @PostMapping("/token")
-    public ResponseEntity<Object> refreshToken(@RequestHeader("Authorization") String token) {
-        String onlyToken = null;
-        if (token.startsWith("Bearer ")) {
-            onlyToken = token.substring(7);
-        }
-        if (!jwtTokenUtil.validateRefreshToken(onlyToken) || onlyToken == null) {
+    public ResponseEntity<Object> refreshToken(@RequestHeader("Authorization") String token) throws UnauthorizeAccessException {
+        try {
+            String onlyToken = null;
+            if (token.startsWith("Bearer ")) {
+                onlyToken = token.substring(7);
+            }
+            if (!jwtTokenUtil.validateRefreshToken(onlyToken) || onlyToken == null) {
+                throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "Invalid refresh-token");
+            }
+            String oid = jwtTokenUtil.getOidFromToken(onlyToken);
+            User user = userRepository.findByOid(oid);
+            String newToken = jwtTokenUtil.generateToken(user);
+            return ResponseEntity.ok(new JwtResponse(newToken));
+        } catch (Exception e) {
             throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "Invalid refresh-token");
         }
-        String oid = jwtTokenUtil.getOidFromToken(onlyToken);
-        User user = userRepository.findByOid(oid);
-        String newToken = jwtTokenUtil.generateToken(user);
-        return ResponseEntity.ok(new JwtResponse(newToken));
+
     }
 
 

@@ -19,12 +19,13 @@ public class UserLocalService {
         this.mapper = mapper;
     }
 
-    public void addLocalUser(User user) {
+    public LocalUser addLocalUser(User user) {
         LocalUser localUser = repository.findByOid(user.getOid());
         if (localUser == null) {
             LocalUser newLocalUser = mapper.map(user, LocalUser.class);
-            repository.save(newLocalUser);
+            return repository.save(newLocalUser);
         }
+        return null;
     }
 
 }

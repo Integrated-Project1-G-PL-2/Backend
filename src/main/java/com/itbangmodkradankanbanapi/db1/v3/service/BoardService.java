@@ -1,9 +1,7 @@
 package com.itbangmodkradankanbanapi.db1.v3.service;
 
-import com.itbangmodkradankanbanapi.db1.v3.dto.BoardDTO;
-import com.itbangmodkradankanbanapi.db1.v3.dto.StatusDTO;
-import com.itbangmodkradankanbanapi.db1.v3.dto.TaskDTO;
-import com.itbangmodkradankanbanapi.db1.v3.dto.TaskDTOForAdd;
+import com.itbangmodkradankanbanapi.db1.ListMapper;
+import com.itbangmodkradankanbanapi.db1.v3.dto.*;
 import com.itbangmodkradankanbanapi.db1.v3.entities.*;
 import com.itbangmodkradankanbanapi.db1.v3.repositories.BoardOfUserRepository;
 import com.itbangmodkradankanbanapi.db1.v3.repositories.BoardRepository;
@@ -12,14 +10,17 @@ import com.itbangmodkradankanbanapi.db2.entities.User;
 import com.itbangmodkradankanbanapi.db2.repositories.UserRepository;
 import com.itbangmodkradankanbanapi.db2.services.JwtTokenUtil;
 import com.itbangmodkradankanbanapi.exception.ItemNotFoundException;
-import com.itbangmodkradankanbanapi.exception.UnauthorizeAccessException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 public class BoardService {
@@ -45,59 +46,47 @@ public class BoardService {
     private BoardRepository boardRepository;
 
     @Autowired
+    private CollabService collabService;
+
+    @Autowired
+    private UserLocalService userLocalService;
+
+    @Autowired
     private ModelMapper mapper;
+
+    @Autowired
+    private ListMapper listMapper;
 
 
     public List<Task> getAllTask(List<String> filterStatuses, String sortBy, String token, String boardId) {
+        return taskService.findAllTask(filterStatuses, sortBy, boardId);
+    }
+
+    public List<CollabDTOResponse> getAllCollabOfBoard(String boardId) {
         Board board = getBoardById(boardId);
-        if (isPublicAccessibility(board)) {
-            return taskService.findAllTask(filterStatuses, sortBy, boardId);
-        }
-        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
-        if (boardOfUser != null && canAccess(boardOfUser)) {
-            return taskService.findAllTask(filterStatuses, sortBy, boardId);
-        } else {
-            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
-        }
+        List<BoardOfUser> boardOfUsers = collabService.getAllCollab(board);
+        return boardOfUsers.stream().map(element -> new CollabDTOResponse(element.getLocalUser().getOid(), element.getLocalUser().getName(), element.getLocalUser().getEmail(), element.getRole(), element.getAddedOn())).toList();
     }
 
     public List<Status> getAllStatus(String token, String boardId) {
         Board board = getBoardById(boardId);
-        if (isPublicAccessibility(board)) {
-            return statusService.findAllStatus(board);
-        }
-        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
-        if (boardOfUser != null && canAccess(boardOfUser)) {
-            return statusService.findAllStatus(board);
-        } else {
-            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
-        }
+        return statusService.findAllStatus(board);
     }
 
     public Task getTaskById(String boardId, String token, int taskId) {
+        return taskService.findTaskById(boardId, taskId);
+    }
+
+    public CollabDTOResponse getCollabOfBoard(String boardId, String collabId) {
         Board board = getBoardById(boardId);
-        if (isPublicAccessibility(board)) {
-            return taskService.findTaskById(boardId, taskId);
-        }
-        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
-        if (boardOfUser != null && canAccess(boardOfUser)) {
-            return taskService.findTaskById(boardId, taskId);
-        } else {
-            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
-        }
+        LocalUser user = getLocalById(collabId).orElseThrow(() -> new ItemNotFoundException("Collab oid '" + collabId + "' not found"));
+        BoardOfUser boardOfUser = collabService.getCollabById(board, user);
+        return new CollabDTOResponse(boardOfUser.getLocalUser().getOid(), boardOfUser.getLocalUser().getName(), boardOfUser.getLocalUser().getEmail(), boardOfUser.getRole(), boardOfUser.getAddedOn());
     }
 
     public Status getStatusById(String boardId, String token, int statusId) {
         Board board = getBoardById(boardId);
-        if (isPublicAccessibility(board)) {
-            return statusService.findStatusById(board, statusId);
-        }
-        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
-        if (boardOfUser != null && canAccess(boardOfUser)) {
-            return statusService.findStatusById(board, statusId);
-        } else {
-            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
-        }
+        return statusService.findStatusById(board, statusId);
     }
 
     public BoardDTO createNewBoard(BoardDTO boardDTO, String token) {
@@ -116,132 +105,152 @@ public class BoardService {
         }
     }
 
-    public BoardDTO editBoard(BoardDTO boardDTO, String token, String boardId) {
-        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
-        Board board = getBoardById(boardId);
-        if (boardOfUser != null && isOwner(boardOfUser)) {
-            board.setVisibility(Board.Visibility.valueOf(boardDTO.getVisibility()));
-            board = boardRepository.save(board);
-            return mapper.map(board, BoardDTO.class);
-        } else {
-            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
-        }
 
+    public CollabDTOResponse addNewCollab(String token, CollabDTORequest collabDTORequest, String boardId) {
+        User userFromEmail = getUserByEmail(collabDTORequest.getEmail());
+        LocalUser localUserFromEmail = getLocalById(userFromEmail.getOid()).orElse(null);
+        if (localUserFromEmail == null && userFromEmail != null) {
+            localUserFromEmail = userLocalService.addLocalUser(userFromEmail);
+        }
+        LocalUser localUserFromToken = getLocalUserFromToken(token);
+        if (localUserFromEmail.getOid().equals(localUserFromToken.getOid())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "You can not add yourself as collaborator");
+        }
+        Board board = getBoardById(boardId);
+        BoardOfUser boardOfUser = boardOfUserRepository.findBoardOfUserByLocalUserAndBoard(localUserFromEmail, board);
+        if (boardOfUser != null) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "The user is already the collaborator of this board");
+        }
+        BoardOfUser boardOfUserResult = collabService.addNewCollab(board, localUserFromEmail, collabDTORequest.getAccessRight());
+        return new CollabDTOResponse(boardOfUserResult.getLocalUser().getOid(), boardOfUserResult.getLocalUser().getName(), boardOfUserResult.getLocalUser().getEmail(), boardOfUserResult.getRole(), boardOfUserResult.getAddedOn());
     }
 
-//    public BoardDTO grantPrivilegeToBoard(BoardDTO boardDTO, String token, String boardId) {
-//        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
-//        Board board = getBoardById(boardId);
-//        if (boardOfUser != null && isOwner(boardOfUser)) {
-//            board.setVisibility(Board.Visibility.valueOf(boardDTO.getVisibility()));
-//            board = boardRepository.save(board);
-//            return mapper.map(board, BoardDTO.class);
-//        } else {
-//            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
-//        }
-//
-//    }
+    public CollabDTOResponse editCollab(CollabDTORequest collabDTORequest, String boardId, String collabId) {
+        Board board = getBoardById(boardId);
+        LocalUser user = getLocalById(collabId).orElseThrow(() -> new ItemNotFoundException("Collab oid '" + collabId + "' not found"));
+        BoardOfUser boardOfUser = collabService.getCollabById(board, user);
+        if (boardOfUser != null && !boardOfUser.getRole().equals(BoardOfUser.Role.OWNER)) {
+            if (collabDTORequest.getAccessRight().equals("WRITE")) {
+                boardOfUser.setRole(BoardOfUser.Role.COLLABORATOR);
+            } else {
+                boardOfUser.setRole(BoardOfUser.Role.VISITOR);
+            }
+            BoardOfUser boardOfUserResult = boardOfUserRepository.save(boardOfUser);
+            return new CollabDTOResponse(boardOfUserResult.getLocalUser().getOid(), boardOfUserResult.getLocalUser().getName(), boardOfUserResult.getLocalUser().getEmail(), boardOfUserResult.getRole(), boardOfUserResult.getAddedOn());
+        }
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can not do this action");
+    }
+
+    public void deleteCollab(String boardId, String collabId) {
+        Board board = getBoardById(boardId);
+        LocalUser user = getLocalById(collabId).orElseThrow(() -> new ItemNotFoundException("Collab oid '" + collabId + "' not found"));
+        BoardOfUser boardOfUser = collabService.getCollabById(board, user);
+        if (boardOfUser != null && !boardOfUser.getRole().equals(BoardOfUser.Role.OWNER)) {
+            collabService.deleteCollabById(boardOfUser);
+            return;
+        }
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can not do this action");
+    }
+
+    public BoardDTO editBoard(BoardDTO boardDTO, String token, String boardId) {
+        Board board = getBoardById(boardId);
+        board.setVisibility(Board.Visibility.valueOf(boardDTO.getVisibility()));
+        board = boardRepository.save(board);
+        return mapper.map(board, BoardDTO.class);
+
+    }
 
     public BoardDTO getBoardById(String token, String boardId) {
         Board board = getBoardById(boardId);
         if (isPublicAccessibility(board)) {
             BoardDTO newBoard = mapper.map(board, BoardDTO.class);
-            newBoard.setOwner(getBoardOfUser(boardId).getLocalUser());
+            newBoard.setOwner(getBoardOfUserThatIsOwner(boardId).getLocalUser());
             return newBoard;
         }
-        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
-        if (boardOfUser != null && canAccess(boardOfUser)) {
-            BoardDTO newBoard = mapper.map(board, BoardDTO.class);
-            newBoard.setOwner(getBoardOfUser(boardId).getLocalUser());
-            return newBoard;
-        } else {
-            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
-        }
+
+        BoardDTO newBoard = mapper.map(board, BoardDTO.class);
+        newBoard.setOwner(getBoardOfUserThatIsOwner(boardId).getLocalUser());
+        return newBoard;
+
     }
 
     public List<BoardOfUser> getAllBoard(String token) {
-        LocalUser localUser = localUserRepository.findById(getUserFromToken(token).getOid()).orElseThrow(() -> new ItemNotFoundException("User not found"));
-        return boardOfUserRepository.findAllByLocalUserAndRole(localUser, BoardOfUser.Role.OWNER);
+        LocalUser localUser = localUserRepository.findById(getUserFromToken(token).getOid())
+                .orElseThrow(() -> new ItemNotFoundException("User not found"));
+
+        List<BoardOfUser> result = new ArrayList<>();
+
+        List<BoardOfUser> ownerBoards = boardOfUserRepository.findAllByLocalUserAndRole(localUser, BoardOfUser.Role.OWNER);
+        List<BoardOfUser> collaboratorBoards = boardOfUserRepository.findAllByLocalUserAndRole(localUser, BoardOfUser.Role.COLLABORATOR);
+        List<BoardOfUser> visitorBoards = boardOfUserRepository.findAllByLocalUserAndRole(localUser, BoardOfUser.Role.VISITOR);
+
+        Function<BoardOfUser, BoardOfUser> replaceWithOwner = boardOfUser -> {
+            LocalUser owner = boardOfUserRepository
+                    .findBoardOfUserByBoardAndRole(boardOfUser.getBoard(), BoardOfUser.Role.OWNER)
+                    .get(0)
+                    .getLocalUser();
+            boardOfUser.setLocalUser(owner);
+            return boardOfUser;
+        };
+
+        List<BoardOfUser> collaboratorResult = collaboratorBoards.stream()
+                .map(replaceWithOwner)
+                .collect(Collectors.toList());
+
+        List<BoardOfUser> visitorResult = visitorBoards.stream()
+                .map(replaceWithOwner)
+                .collect(Collectors.toList());
+
+        result.addAll(ownerBoards);
+        result.addAll(collaboratorResult);
+        result.addAll(visitorResult);
+        return result;
     }
 
+
     public TaskDTO addNewTaskToBoard(TaskDTOForAdd task, String token, String boardId) {
-        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
         Board board = getBoardById(boardId);
-        if (boardOfUser != null && canModify(boardOfUser)) {
-            return taskService.createNewTask(task, board);
-        } else {
-            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
-        }
+        return taskService.createNewTask(task, board);
     }
 
     public StatusDTO addNewStatusToBoard(StatusDTO statusDTO, String token, String boardId) {
-        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
         Board board = getBoardById(boardId);
-        if (boardOfUser != null && canModify(boardOfUser)) {
-            return statusService.createNewStatus(statusDTO, board);
-        } else {
-            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
-        }
+        return statusService.createNewStatus(statusDTO, board);
     }
 
     public TaskDTO editTaskOfBoard(TaskDTOForAdd task, String token, String boardId, int taskId) {
-        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
         Board board = getBoardById(boardId);
-        if (boardOfUser != null && canModify(boardOfUser)) {
-            return taskService.updateTask(board, taskId, task);
-        } else {
-            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
-        }
+        return taskService.updateTask(board, taskId, task);
     }
 
     public StatusDTO editStatusOfBoard(StatusDTO statusDTO, String token, String boardId, int statusId) {
-        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
         Board board = getBoardById(boardId);
-        if (boardOfUser != null && canModify(boardOfUser)) {
-            return statusService.updateStatus(board, statusId, statusDTO);
-        } else {
-            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
-        }
+        return statusService.updateStatus(board, statusId, statusDTO);
     }
 
     public TaskDTO deleteTaskOfBoard(String token, String boardId, int taskId) {
-        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
-        if (boardOfUser != null && canModify(boardOfUser)) {
-            return taskService.deleteTask(boardId, taskId);
-        } else {
-            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
-        }
+        return taskService.deleteTask(boardId, taskId);
     }
 
     public void deleteStatusOfBoard(String token, String boardId, int statusId) {
-        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
         Board board = getBoardById(boardId);
-        if (boardOfUser != null && canModify(boardOfUser)) {
-            statusService.deleteStatus(board, statusId);
-        } else {
-            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
-        }
+        statusService.deleteStatus(board, statusId);
     }
 
     public void deleteThenTranferStatusOfBoard(String token, String boardId, int statusId, int newStatusId) {
-        BoardOfUser boardOfUser = validateUserAndBoard(token, boardId);
         Board board = getBoardById(boardId);
-        if (boardOfUser != null && canModify(boardOfUser)) {
-            statusService.deleteStatusAndTransfer(board, statusId, newStatusId);
-        } else {
-            throw new UnauthorizeAccessException(HttpStatus.FORBIDDEN, "User not a board owner");
-        }
+        statusService.deleteStatusAndTransfer(board, statusId, newStatusId);
     }
 
-    private BoardOfUser validateUserAndBoard(String token, String boardId) {
+    public BoardOfUser validateUserAndBoard(String token, String boardId) {
         LocalUser localUser = getLocalUserFromToken(token);
         Board board = getBoardById(boardId);
         return boardOfUserRepository.findBoardOfUserByLocalUserAndBoard(localUser, board);
     }
 
-    private BoardOfUser getBoardOfUser(String boardId) {
+    private BoardOfUser getBoardOfUserThatIsOwner(String boardId) {
         Board board = getBoardById(boardId);
-        return boardOfUserRepository.findBoardOfUserByBoardAndRole(board, BoardOfUser.Role.OWNER);
+        return boardOfUserRepository.findBoardOfUserByBoardAndRole(board, BoardOfUser.Role.OWNER).get(0);
     }
 
     private LocalUser getLocalUserFromToken(String token) {
@@ -252,6 +261,18 @@ public class BoardService {
 
     public Board getBoardById(String boardId) {
         return boardRepository.findById(boardId).orElseThrow(() -> new ItemNotFoundException("Board id '" + boardId + "' not found"));
+    }
+
+    public User getUserByEmail(String email) {
+        return userRepository.findUserByEmail(email).orElseThrow(() -> new ItemNotFoundException("Collab email '" + email + "' not found"));
+    }
+
+    public LocalUser getLocalUserByEmail(String email) {
+        return localUserRepository.findByEmail(email).orElseThrow(() -> new ItemNotFoundException("Collab email '" + email + "' not found"));
+    }
+
+    public Optional<LocalUser> getLocalById(String oid) {
+        return localUserRepository.findById(oid);
     }
 
     private User getUserFromToken(String token) {
@@ -266,17 +287,15 @@ public class BoardService {
         return board.getVisibility().toString().equals("PUBLIC");
     }
 
-    private boolean canModify(BoardOfUser boardOfUser) {
+    public boolean canModify(BoardOfUser boardOfUser) {
         return boardOfUser.getRole().toString().equals("OWNER") || boardOfUser.getRole().toString().equals("COLLABORATOR");
     }
 
-    private boolean canAccess(BoardOfUser boardOfUser) {
+    public boolean canAccess(BoardOfUser boardOfUser) {
         return boardOfUser.getRole().toString().equals("OWNER") || boardOfUser.getRole().toString().equals("COLLABORATOR") || boardOfUser.getRole().toString().equals("VISITOR");
     }
 
-    private boolean isOwner(BoardOfUser boardOfUser) {
+    public boolean isOwner(BoardOfUser boardOfUser) {
         return boardOfUser.getRole().toString().equals("OWNER");
     }
-
-
 }

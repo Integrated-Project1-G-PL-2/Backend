@@ -1,6 +1,7 @@
 package com.itbangmodkradankanbanapi.db1.v3.controller;
 
 import com.itbangmodkradankanbanapi.db1.v3.dto.BoardDTO;
+import com.itbangmodkradankanbanapi.db1.v3.dto.CollabDTORequest;
 import com.itbangmodkradankanbanapi.db1.v3.service.BoardService;
 import com.itbangmodkradankanbanapi.exception.InvalidRequestField;
 import jakarta.validation.Valid;
@@ -8,6 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 @RequestMapping("/v3/boards")
@@ -46,12 +50,30 @@ public class BoardController {
         return ResponseEntity.ok(boardService.editBoard(boardDTO, token, id));
     }
 
-//    @PostMapping("/{id}")
-//    public ResponseEntity<Object> grantPrivilegeToBoard(@Valid @RequestBody(required = false) BoardDTO boardDTO, @RequestHeader("Authorization") String token, @PathVariable String id) {
-//        if (boardDTO == null) {
-//            throw new InvalidRequestField(HttpStatus.BAD_REQUEST, "Invalid request body");
-//        }
-//        return ResponseEntity.ok(boardService.grantPrivilegeToBoard(boardDTO, token, id));
-//    }
+    @PostMapping("/{id}/collabs")
+    public ResponseEntity<Object> addCollabToBoard(@RequestHeader("Authorization") String token, @Valid @RequestBody CollabDTORequest collabDTORequest, @PathVariable String id) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(boardService.addNewCollab(token, collabDTORequest, id));
+    }
+
+    @GetMapping("/{id}/collabs")
+    public ResponseEntity<Object> getAllCollabOfBoard(@RequestHeader("Authorization") String token, @PathVariable String id) {
+        return ResponseEntity.ok(boardService.getAllCollabOfBoard(id));
+    }
+
+    @GetMapping("/{id}/collabs/{collabId}")
+    public ResponseEntity<Object> getCollabOfBoardById(@RequestHeader("Authorization") String token, @PathVariable String id, @PathVariable String collabId) {
+        return ResponseEntity.ok(boardService.getCollabOfBoard(id, collabId));
+    }
+
+    @PatchMapping("/{id}/collabs/{collabId}")
+    public ResponseEntity<Object> editCollabOfBoardById(@RequestHeader("Authorization") String token, @Valid @RequestBody CollabDTORequest collabDTORequest, @PathVariable String id, @PathVariable String collabId) {
+        return ResponseEntity.ok(boardService.editCollab(collabDTORequest, id, collabId));
+    }
+
+    @DeleteMapping("/{id}/collabs/{collabId}")
+    public ResponseEntity<Object> deleteCollabOfBoardById(@RequestHeader("Authorization") String token, @PathVariable String id, @PathVariable String collabId) {
+        boardService.deleteCollab(id, collabId);
+        return ResponseEntity.status(HttpStatus.OK).body(null);
+    }
 
 }

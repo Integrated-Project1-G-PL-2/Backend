@@ -83,7 +83,6 @@ public class TaskService {
         existingTaskV2.setAssignees(taskDTO.getAssignees());
         Task savedTaskV2 = repository.save(existingTaskV2);
         TaskDTO updateTaskDTO = mapper.map(savedTaskV2, TaskDTO.class);
-        updateTaskDTO.setDescription(null);
         return updateTaskDTO;
     }
 }
