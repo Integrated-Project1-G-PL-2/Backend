@@ -4,6 +4,7 @@ import com.itbangmodkradankanbanapi.db1.v3.entities.Board;
 import com.itbangmodkradankanbanapi.db1.v3.entities.BoardOfUser;
 import com.itbangmodkradankanbanapi.db1.v3.entities.LocalUser;
 import com.itbangmodkradankanbanapi.db1.v3.repositories.BoardOfUserRepository;
+import com.itbangmodkradankanbanapi.exception.ItemNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +29,11 @@ public class CollabService {
     }
 
     public BoardOfUser getCollabById(Board board, LocalUser localUser) {
-        return boardOfUserRepository.findBoardOfUserByLocalUserAndBoard(localUser, board);
+        BoardOfUser boardOfUser = boardOfUserRepository.findBoardOfUserByLocalUserAndBoard(localUser, board);
+        if (boardOfUser == null) {
+            throw new ItemNotFoundException("User don't have permission to this board");
+        }
+        return boardOfUser;
     }
 
     public BoardOfUser addNewCollab(Board board, LocalUser localUser, String accessRight) {

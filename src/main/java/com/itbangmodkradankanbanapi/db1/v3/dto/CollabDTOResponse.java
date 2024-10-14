@@ -17,16 +17,16 @@ public class CollabDTOResponse {
     private String name;
     private String email;
     @Pattern(regexp = "WRITE|READ", message = "Access_right must be either 'WRITE' or 'READ'")
-    private String access_right;
+    private String accessRight;
     private ZonedDateTime addedOn;
 
     public CollabDTOResponse(String oid, String name, String email, BoardOfUser.Role role, ZonedDateTime addedOn) {
         this.name = name;
         this.email = email;
         if (role.equals(BoardOfUser.Role.COLLABORATOR)) {
-            this.access_right = "WRITE";
+            this.accessRight = "WRITE";
         } else {
-            this.access_right = "READ";
+            this.accessRight = "READ";
         }
         this.addedOn = addedOn;
         this.oid = oid;
@@ -41,9 +41,9 @@ public class CollabDTOResponse {
 
     public CollabDTOResponse(BoardOfUser.Role role) {
         if (role.equals(BoardOfUser.Role.COLLABORATOR)) {
-            this.access_right = "WRITE";
+            this.accessRight = "WRITE";
         } else {
-            this.access_right = "READ";
+            this.accessRight = "READ";
         }
     }
 }

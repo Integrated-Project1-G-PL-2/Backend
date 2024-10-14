@@ -121,7 +121,7 @@ public class BoardService {
         if (boardOfUser != null) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "The user is already the collaborator of this board");
         }
-        BoardOfUser boardOfUserResult = collabService.addNewCollab(board, localUserFromEmail, collabDTORequest.getAccess_right());
+        BoardOfUser boardOfUserResult = collabService.addNewCollab(board, localUserFromEmail, collabDTORequest.getAccessRight());
         return new CollabDTOResponse(boardOfUserResult.getLocalUser().getOid(), boardOfUserResult.getLocalUser().getName(), boardOfUserResult.getLocalUser().getEmail(), boardOfUserResult.getRole(), boardOfUserResult.getAddedOn());
     }
 
@@ -130,7 +130,7 @@ public class BoardService {
         LocalUser user = getLocalById(collabId).orElseThrow(() -> new ItemNotFoundException("Collab oid '" + collabId + "' not found"));
         BoardOfUser boardOfUser = collabService.getCollabById(board, user);
         if (boardOfUser != null && !boardOfUser.getRole().equals(BoardOfUser.Role.OWNER)) {
-            if (collabDTORequest.getAccess_right().equals("WRITE")) {
+            if (collabDTORequest.getAccessRight().equals("WRITE")) {
                 boardOfUser.setRole(BoardOfUser.Role.COLLABORATOR);
             } else {
                 boardOfUser.setRole(BoardOfUser.Role.VISITOR);

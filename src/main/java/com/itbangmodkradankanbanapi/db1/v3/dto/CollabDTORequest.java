@@ -10,6 +10,7 @@ public class CollabDTORequest {
 
     @Size(max = 50)
     String email;
+    @NotBlank
     @Pattern(regexp = "WRITE|READ", message = "Access_right must be either 'WRITE' or 'READ'")
-    String access_right;
+    String accessRight;
 }
