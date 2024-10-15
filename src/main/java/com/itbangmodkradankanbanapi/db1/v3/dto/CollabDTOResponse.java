@@ -23,7 +23,7 @@ public class CollabDTOResponse {
     public CollabDTOResponse(String oid, String name, String email, BoardOfUser.Role role, ZonedDateTime addedOn) {
         this.name = name;
         this.email = email;
-        if (role.equals(BoardOfUser.Role.COLLABORATOR)) {
+        if (role.equals(BoardOfUser.Role.WRITE)) {
             this.accessRight = "WRITE";
         } else {
             this.accessRight = "READ";
@@ -40,7 +40,7 @@ public class CollabDTOResponse {
     }
 
     public CollabDTOResponse(BoardOfUser.Role role) {
-        if (role.equals(BoardOfUser.Role.COLLABORATOR)) {
+        if (role.equals(BoardOfUser.Role.WRITE)) {
             this.accessRight = "WRITE";
         } else {
             this.accessRight = "READ";

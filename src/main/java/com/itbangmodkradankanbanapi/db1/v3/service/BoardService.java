@@ -127,13 +127,14 @@ public class BoardService {
 
     public CollabDTOResponse editCollab(CollabDTORequest collabDTORequest, String boardId, String collabId) {
         Board board = getBoardById(boardId);
-        LocalUser user = getLocalById(collabId).orElseThrow(() -> new ItemNotFoundException("Collab oid '" + collabId + "' not found"));
-        BoardOfUser boardOfUser = collabService.getCollabById(board, user);
+        LocalUser collabUser = getLocalById(collabId).orElseThrow(() -> new ItemNotFoundException("Collab oid '" + collabId + "' not found"));
+        BoardOfUser boardOfUser = collabService.getCollabById(board, collabUser);
+        System.out.println("yyy");
         if (boardOfUser != null && !boardOfUser.getRole().equals(BoardOfUser.Role.OWNER)) {
             if (collabDTORequest.getAccessRight().equals("WRITE")) {
-                boardOfUser.setRole(BoardOfUser.Role.COLLABORATOR);
+                boardOfUser.setRole(BoardOfUser.Role.WRITE);
             } else {
-                boardOfUser.setRole(BoardOfUser.Role.VISITOR);
+                boardOfUser.setRole(BoardOfUser.Role.READ);
             }
             BoardOfUser boardOfUserResult = boardOfUserRepository.save(boardOfUser);
             return new CollabDTOResponse(boardOfUserResult.getLocalUser().getOid(), boardOfUserResult.getLocalUser().getName(), boardOfUserResult.getLocalUser().getEmail(), boardOfUserResult.getRole(), boardOfUserResult.getAddedOn());
@@ -141,15 +142,19 @@ public class BoardService {
         throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can not do this action");
     }
 
-    public void deleteCollab(String boardId, String collabId) {
+    public void deleteCollab( String token ,String boardId, String collabId) {
         Board board = getBoardById(boardId);
-        LocalUser user = getLocalById(collabId).orElseThrow(() -> new ItemNotFoundException("Collab oid '" + collabId + "' not found"));
-        BoardOfUser boardOfUser = collabService.getCollabById(board, user);
-        if (boardOfUser != null && !boardOfUser.getRole().equals(BoardOfUser.Role.OWNER)) {
-            collabService.deleteCollabById(boardOfUser);
-            return;
+        BoardOfUser boardOfUserFromToken = validateUserAndBoard(token,boardId);
+        if(boardOfUserFromToken.getRole().equals(BoardOfUser.Role.OWNER) || boardOfUserFromToken.getLocalUser().getOid().equals(collabId)){
+            LocalUser user = getLocalById(collabId).orElseThrow(() -> new ItemNotFoundException("Collab oid '" + collabId + "' not found"));
+            BoardOfUser boardOfUser = collabService.getCollabById(board, user);
+            if (boardOfUser != null && !boardOfUser.getRole().equals(BoardOfUser.Role.OWNER)) {
+                collabService.deleteCollabById(boardOfUser);
+                return;
+            }
         }
         throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can not do this action");
+
     }
 
     public BoardDTO editBoard(BoardDTO boardDTO, String token, String boardId) {
@@ -174,15 +179,15 @@ public class BoardService {
 
     }
 
-    public List<BoardOfUser> getAllBoard(String token) {
+    public AllBoardDTOResponse getAllBoard(String token) {
         LocalUser localUser = localUserRepository.findById(getUserFromToken(token).getOid())
                 .orElseThrow(() -> new ItemNotFoundException("User not found"));
 
         List<BoardOfUser> result = new ArrayList<>();
 
         List<BoardOfUser> ownerBoards = boardOfUserRepository.findAllByLocalUserAndRole(localUser, BoardOfUser.Role.OWNER);
-        List<BoardOfUser> collaboratorBoards = boardOfUserRepository.findAllByLocalUserAndRole(localUser, BoardOfUser.Role.COLLABORATOR);
-        List<BoardOfUser> visitorBoards = boardOfUserRepository.findAllByLocalUserAndRole(localUser, BoardOfUser.Role.VISITOR);
+        List<BoardOfUser> collaboratorBoards = boardOfUserRepository.findAllByLocalUserAndRole(localUser, BoardOfUser.Role.WRITE);
+        List<BoardOfUser> visitorBoards = boardOfUserRepository.findAllByLocalUserAndRole(localUser, BoardOfUser.Role.READ);
 
         Function<BoardOfUser, BoardOfUser> replaceWithOwner = boardOfUser -> {
             LocalUser owner = boardOfUserRepository
@@ -201,10 +206,10 @@ public class BoardService {
                 .map(replaceWithOwner)
                 .collect(Collectors.toList());
 
-        result.addAll(ownerBoards);
         result.addAll(collaboratorResult);
         result.addAll(visitorResult);
-        return result;
+        AllBoardDTOResponse allBoardDTOResponse = new AllBoardDTOResponse(result,ownerBoards);
+        return allBoardDTOResponse;
     }
 
 
@@ -288,11 +293,11 @@ public class BoardService {
     }
 
     public boolean canModify(BoardOfUser boardOfUser) {
-        return boardOfUser.getRole().toString().equals("OWNER") || boardOfUser.getRole().toString().equals("COLLABORATOR");
+        return boardOfUser.getRole().toString().equals("OWNER") || boardOfUser.getRole().toString().equals("WRITE");
     }
 
     public boolean canAccess(BoardOfUser boardOfUser) {
-        return boardOfUser.getRole().toString().equals("OWNER") || boardOfUser.getRole().toString().equals("COLLABORATOR") || boardOfUser.getRole().toString().equals("VISITOR");
+        return boardOfUser.getRole().toString().equals("OWNER") || boardOfUser.getRole().toString().equals("WRITE") || boardOfUser.getRole().toString().equals("READ");
     }
 
     public boolean isOwner(BoardOfUser boardOfUser) {

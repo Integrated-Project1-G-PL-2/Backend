@@ -56,7 +56,7 @@ public class BoardOfUser {
 
     public enum Role {
         OWNER,
-        VISITOR,
-        COLLABORATOR,
+        READ,
+        WRITE
     }
 }

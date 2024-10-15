@@ -36,7 +36,7 @@ public class StatusController {
 
 
     @PutMapping("/{statusId}")
-    public ResponseEntity<StatusDTO> editStatusOfBoard(@Valid @RequestBody StatusDTO statusDTO, @RequestHeader("Authorization") String token, @PathVariable String id, @PathVariable int statusId) {
+    public ResponseEntity<StatusDTO> editStatusOfBoard(@Valid @RequestBody(required = false) StatusDTO statusDTO, @RequestHeader("Authorization") String token, @PathVariable String id, @PathVariable int statusId) {
         return ResponseEntity.ok(boardService.editStatusOfBoard(statusDTO, token, id, statusId));
     }
 
