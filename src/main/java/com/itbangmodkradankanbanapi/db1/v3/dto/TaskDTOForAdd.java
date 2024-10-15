@@ -6,11 +6,11 @@ import lombok.Data;
 @Data
 public class TaskDTOForAdd {
     private Integer id;
-    @Size(max = 100, min = 1)
+    @Size(max = 100)
     private String title;
-    @Size(max = 500, min = 1)
+    @Size(max = 500)
     private String description;
-    @Size(max = 30, min = 1)
+    @Size(max = 30)
     private String assignees;
     private Integer status;
 

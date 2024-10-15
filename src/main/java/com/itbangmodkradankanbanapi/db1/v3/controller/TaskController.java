@@ -46,7 +46,7 @@ public class TaskController {
 
     //tested
     @PutMapping("/{taskId}")
-    public ResponseEntity<TaskDTO> editTaskOfBoard(@Valid @RequestBody TaskDTOForAdd task, @RequestHeader("Authorization") String token, @PathVariable String id, @PathVariable int taskId) {
+    public ResponseEntity<TaskDTO> editTaskOfBoard(@Valid @RequestBody(required = false) TaskDTOForAdd task, @RequestHeader("Authorization") String token, @PathVariable String id, @PathVariable int taskId) {
         return ResponseEntity.ok(boardService.editTaskOfBoard(task, token, id, taskId));
     }
 

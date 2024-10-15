@@ -72,7 +72,7 @@ public class BoardController {
 
     @DeleteMapping("/{id}/collabs/{collabId}")
     public ResponseEntity<Object> deleteCollabOfBoardById(@RequestHeader("Authorization") String token, @PathVariable String id, @PathVariable String collabId) {
-        boardService.deleteCollab(id, collabId);
+        boardService.deleteCollab(token ,id, collabId);
         return ResponseEntity.status(HttpStatus.OK).body(null);
     }
 
