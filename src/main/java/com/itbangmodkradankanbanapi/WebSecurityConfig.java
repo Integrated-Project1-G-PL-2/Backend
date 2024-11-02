@@ -45,7 +45,7 @@ public class WebSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.csrf(csrf -> csrf.disable())
                 .authorizeRequests(
-                        authorize -> authorize.requestMatchers("/login", "/error").permitAll()
+                        authorize -> authorize.requestMatchers("/login", "/error", "/v3/boards/{boardId}/invitation").permitAll()
                                 .requestMatchers("/token").permitAll()
                                 .requestMatchers(HttpMethod.GET, "/v3/boards/**").hasAnyAuthority("PUBLIC-ACCESS", "OWNER", "COLLABORATOR-READER", "COLLABORATOR-WRITER")
                                 .requestMatchers(HttpMethod.GET, "/v3/boards").hasAnyAuthority("OWNER", "COLLABORATOR-READER", "COLLABORATOR-WRITER")

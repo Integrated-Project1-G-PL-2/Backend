@@ -85,6 +85,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                         chain.doFilter(request, response);
                         return;
                     }
+                    if (request.getServletPath().matches("^/v3/boards/[^/]+/invitation$")) {
+                        chain.doFilter(request, response);
+                        return;
+                    }
                     // null when not owner and have boardId
                     UserDetails userDetails = this.jwtUserDetailsService.loadUserByUsername(username, jwtToken, boardId);
                     if (jwtTokenUtil.validateToken(jwtToken, userDetails)) {

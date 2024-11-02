@@ -39,6 +39,17 @@ public class CollabDTOResponse {
         this.addedOn = addedOn == null ? ZonedDateTime.now() : addedOn;
     }
 
+    public CollabDTOResponse(String oid, String name, String email, BoardOfUser.Role role) {
+        this.name = name;
+        this.email = email;
+        if (role.equals(BoardOfUser.Role.WRITE)) {
+            this.accessRight = "WRITE";
+        } else {
+            this.accessRight = "READ";
+        }
+        this.oid = oid;
+    }
+
     public CollabDTOResponse(BoardOfUser.Role role) {
         if (role.equals(BoardOfUser.Role.WRITE)) {
             this.accessRight = "WRITE";
