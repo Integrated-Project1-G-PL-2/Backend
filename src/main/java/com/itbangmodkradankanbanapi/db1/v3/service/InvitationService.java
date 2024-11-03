@@ -38,10 +38,7 @@ public class InvitationService {
     }
 
     public void deleteInvitationFormId(String token, String id) {
-        if (token.startsWith("Bearer ")) {
-            token = token.substring(7);
-        }
-        String oid = jwtTokenUtil.getOidFromToken(token);
+        String oid = getOidFromToken(token);
         Invitation invitation = invitationRepository.findById(new Invitation.PendingId(id, oid)).orElse(null);
         if (invitation == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Invitation not found");
@@ -53,5 +50,21 @@ public class InvitationService {
         return invitationRepository.findAllByLocalUser(localUser);
     }
 
+
+    public boolean checkInvitation(String token, String id) {
+        String oid = getOidFromToken(token);
+        Invitation invitation = invitationRepository.findById(new Invitation.PendingId(id, oid)).orElse(null);
+        if (invitation != null) {
+            return true;
+        }
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Invitation not found");
+    }
+
+    private String getOidFromToken(String token) {
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+        return jwtTokenUtil.getOidFromToken(token);
+    }
 
 }

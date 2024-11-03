@@ -22,13 +22,19 @@ public class InvitationController {
     InvitationService invitationService;
 
 
+    @GetMapping("")
+    public ResponseEntity<Object> checkInvitation(@PathVariable String id, @RequestHeader("Authorization") String token) {
+        return ResponseEntity.ok(invitationService.checkInvitation(token, id));
+    }
+
+
     @PostMapping("")
-    public ResponseEntity<Object> AcceptInvitation(@PathVariable String id, @RequestHeader("Authorization") String token) {
+    public ResponseEntity<Object> acceptInvitation(@PathVariable String id, @RequestHeader("Authorization") String token) {
         return ResponseEntity.status(HttpStatus.CREATED).body(boardService.addNewCollab(token, id));
     }
 
     @DeleteMapping("")
-    public ResponseEntity<Object> DeclinedInvitation(@PathVariable String id, @RequestHeader("Authorization") String token) {
+    public ResponseEntity<Object> declinedInvitation(@PathVariable String id, @RequestHeader("Authorization") String token) {
         invitationService.deleteInvitationFormId(token, id);
         return ResponseEntity.ok(null);
     }
