@@ -35,7 +35,7 @@ public class CollabDTOResponse {
     }
 
     public CollabDTOResponse(String boardName, String owner, String accessRight) {
-        this.boardId = boardName;
+        this.boardName = boardName;
         this.owner = owner;
         this.accessRight = accessRight;
     }
