@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class BoardService {
@@ -209,28 +210,21 @@ public class BoardService {
         LocalUser localUser = localUserRepository.findById(getUserFromToken(token).getOid())
                 .orElseThrow(() -> new ItemNotFoundException("User not found"));
 
-        List<BoardOfUser> result = new ArrayList<>();
         List<BoardOfUser> ownerBoards = boardOfUserRepository.findAllByLocalUserAndRole(localUser, BoardOfUser.Role.OWNER);
         List<BoardOfUser> collaboratorBoards = boardOfUserRepository.findAllByLocalUserAndRole(localUser, BoardOfUser.Role.WRITE);
         List<BoardOfUser> visitorBoards = boardOfUserRepository.findAllByLocalUserAndRole(localUser, BoardOfUser.Role.READ);
         List<Invitation> invitations = invitationService.findAllByLocalUser(localUser);
 
         Function<BoardOfUser, BoardOfUser> replaceWithOwner = boardOfUser -> {
-            LocalUser owner = boardOfUserRepository
-                    .findBoardOfUserByBoardAndRole(boardOfUser.getBoard(), BoardOfUser.Role.OWNER)
-                    .get(0)
-                    .getLocalUser();
+            LocalUser owner = getOwner(boardOfUser.getBoard());
             boardOfUser.setLocalUser(owner);
             return boardOfUser;
         };
 
-        Function<Invitation, Invitation> replaceWithOwnerOfPending = Invitation -> {
-            LocalUser owner = boardOfUserRepository
-                    .findBoardOfUserByBoardAndRole(Invitation.getBoard(), BoardOfUser.Role.OWNER)
-                    .get(0)
-                    .getLocalUser();
-            Invitation.setLocalUser(owner);
-            return Invitation;
+        Function<Invitation, Invitation> replaceWithOwnerOfPending = invitation -> {
+            LocalUser owner = getOwner(invitation.getBoard());
+            invitation.setLocalUser(owner);
+            return invitation;
         };
 
         List<BoardOfUser> collaboratorResult = collaboratorBoards.stream()
@@ -245,10 +239,19 @@ public class BoardService {
                 .map(replaceWithOwnerOfPending)
                 .collect(Collectors.toList());
 
-        result.addAll(collaboratorResult);
-        result.addAll(visitorResult);
-        AllBoardDTOResponse allBoardDTOResponse = new AllBoardDTOResponse(result, ownerBoards, invitations);
-        return allBoardDTOResponse;
+        return new AllBoardDTOResponse(
+                Stream.concat(collaboratorResult.stream(), visitorResult.stream()).collect(Collectors.toList()),
+                ownerBoards,
+                pending
+        );
+    }
+
+    private LocalUser getOwner(Board board) {
+        return boardOfUserRepository.findBoardOfUserByBoardAndRole(board, BoardOfUser.Role.OWNER)
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new ItemNotFoundException("Owner not found"))
+                .getLocalUser();
     }
 
 
