@@ -6,8 +6,11 @@ import com.itbangmodkradankanbanapi.db1.v3.entities.BoardOfUser;
 import com.itbangmodkradankanbanapi.db1.v3.entities.Invitation;
 import com.itbangmodkradankanbanapi.db1.v3.entities.LocalUser;
 import com.itbangmodkradankanbanapi.db1.v3.repositories.BoardOfUserRepository;
+import com.itbangmodkradankanbanapi.db1.v3.repositories.BoardRepository;
 import com.itbangmodkradankanbanapi.db1.v3.repositories.InvitationRepository;
 import com.itbangmodkradankanbanapi.db1.v3.repositories.LocalUserRepository;
+import com.itbangmodkradankanbanapi.db2.entities.User;
+import com.itbangmodkradankanbanapi.db2.repositories.UserRepository;
 import com.itbangmodkradankanbanapi.db2.services.JwtTokenUtil;
 import com.itbangmodkradankanbanapi.exception.ItemNotFoundException;
 import jakarta.transaction.Transactional;
@@ -24,10 +27,20 @@ public class InvitationService {
     private InvitationRepository invitationRepository;
 
     @Autowired
-    JwtTokenUtil jwtTokenUtil;
+    private JwtTokenUtil jwtTokenUtil;
 
     @Autowired
     private BoardOfUserRepository boardOfUserRepository;
+
+    @Autowired
+    private LocalUserRepository localUserRepository;
+
+    @Autowired
+    private BoardRepository boardRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
 
     @Transactional
     public Invitation addInvitation(Invitation invitation) {
@@ -80,4 +93,29 @@ public class InvitationService {
                 .orElseThrow(() -> new ItemNotFoundException("Owner not found"))
                 .getLocalUser();
     }
+
+    public Invitation validateUserAndBoard(String token, String boardId) {
+        LocalUser localUser = getLocalUserFromToken(token);
+        Board board = getBoardById(boardId);
+        return invitationRepository.findInvitationByLocalUserAndBoard(localUser, board);
+    }
+
+    public LocalUser getLocalUserFromToken(String token) {
+        User user = getUserFromToken(token);
+        String userOid = user.getOid();
+        return localUserRepository.findById(userOid).orElseThrow(() -> new ItemNotFoundException("User not found"));
+    }
+
+    public Board getBoardById(String boardId) {
+        return boardRepository.findById(boardId).orElseThrow(() -> new ItemNotFoundException("Board id '" + boardId + "' not found"));
+    }
+
+    private User getUserFromToken(String token) {
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+        String username = jwtTokenUtil.getUsernameFromToken(token);
+        return userRepository.findByUsername(username);
+    }
+
 }
