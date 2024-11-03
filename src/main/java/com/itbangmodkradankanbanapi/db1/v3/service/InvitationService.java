@@ -49,4 +49,9 @@ public class InvitationService {
         invitationRepository.delete(invitation);
     }
 
+    public List<Invitation> findAllByLocalUser(LocalUser localUser) {
+        return invitationRepository.findAllByLocalUser(localUser);
+    }
+
+
 }

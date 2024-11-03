@@ -6,6 +6,7 @@ import com.itbangmodkradankanbanapi.db1.v3.dto.*;
 import com.itbangmodkradankanbanapi.db1.v3.entities.*;
 import com.itbangmodkradankanbanapi.db1.v3.repositories.BoardOfUserRepository;
 import com.itbangmodkradankanbanapi.db1.v3.repositories.BoardRepository;
+import com.itbangmodkradankanbanapi.db1.v3.repositories.InvitationRepository;
 import com.itbangmodkradankanbanapi.db1.v3.repositories.LocalUserRepository;
 import com.itbangmodkradankanbanapi.db2.entities.User;
 import com.itbangmodkradankanbanapi.db2.repositories.UserRepository;
@@ -116,7 +117,7 @@ public class BoardService {
         }
     }
 
-    public MailResponse sendInvitation(String token, CollabDTORequest collabDTORequest, String boardId) {
+    public CollabDTOResponse sendInvitation(String token, CollabDTORequest collabDTORequest, String boardId) {
         User userFromEmail = getUserByEmail(collabDTORequest.getEmail());
         LocalUser localUserFromEmail = getLocalById(userFromEmail.getOid()).orElse(null);
         if (localUserFromEmail == null && userFromEmail != null) {
@@ -135,8 +136,8 @@ public class BoardService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "The user is already the collaborator of this board");
         }
         mailService.sendEmail(localUserFromEmail.getEmail(), emailConfig.getSubject(localUserFromToken.getName(), collabDTORequest.getAccessRight(), board.getName()), emailConfig.getBody(boardId), localUserFromToken.getName());
-        invitationService.addInvitation(new Invitation(localUserFromEmail, board, BoardOfUser.Role.valueOf(collabDTORequest.getAccessRight())));
-        return new MailResponse("success", "Email sent successfully.");
+        Invitation invitation = invitationService.addInvitation(new Invitation(localUserFromEmail, board, BoardOfUser.Role.valueOf(collabDTORequest.getAccessRight())));
+        return new CollabDTOResponse(invitation.getLocalUser().getOid(), invitation.getLocalUser().getName(), invitation.getLocalUser().getEmail(), invitation.getRole(), null);
     }
 
     public CollabDTOResponse addNewCollab(String token, String boardId) {
@@ -209,10 +210,10 @@ public class BoardService {
                 .orElseThrow(() -> new ItemNotFoundException("User not found"));
 
         List<BoardOfUser> result = new ArrayList<>();
-
         List<BoardOfUser> ownerBoards = boardOfUserRepository.findAllByLocalUserAndRole(localUser, BoardOfUser.Role.OWNER);
         List<BoardOfUser> collaboratorBoards = boardOfUserRepository.findAllByLocalUserAndRole(localUser, BoardOfUser.Role.WRITE);
         List<BoardOfUser> visitorBoards = boardOfUserRepository.findAllByLocalUserAndRole(localUser, BoardOfUser.Role.READ);
+        List<Invitation> invitations = invitationService.findAllByLocalUser(localUser);
 
         Function<BoardOfUser, BoardOfUser> replaceWithOwner = boardOfUser -> {
             LocalUser owner = boardOfUserRepository
@@ -223,6 +224,15 @@ public class BoardService {
             return boardOfUser;
         };
 
+        Function<Invitation, Invitation> replaceWithOwnerOfPending = Invitation -> {
+            LocalUser owner = boardOfUserRepository
+                    .findBoardOfUserByBoardAndRole(Invitation.getBoard(), BoardOfUser.Role.OWNER)
+                    .get(0)
+                    .getLocalUser();
+            Invitation.setLocalUser(owner);
+            return Invitation;
+        };
+
         List<BoardOfUser> collaboratorResult = collaboratorBoards.stream()
                 .map(replaceWithOwner)
                 .collect(Collectors.toList());
@@ -231,9 +241,13 @@ public class BoardService {
                 .map(replaceWithOwner)
                 .collect(Collectors.toList());
 
+        List<Invitation> pending = invitations.stream()
+                .map(replaceWithOwnerOfPending)
+                .collect(Collectors.toList());
+
         result.addAll(collaboratorResult);
         result.addAll(visitorResult);
-        AllBoardDTOResponse allBoardDTOResponse = new AllBoardDTOResponse(result, ownerBoards);
+        AllBoardDTOResponse allBoardDTOResponse = new AllBoardDTOResponse(result, ownerBoards, invitations);
         return allBoardDTOResponse;
     }
 
