@@ -23,7 +23,7 @@ public class EmailService {
     private JavaMailSender mailSender;
 
     @Async
-    public void sendEmail(String to, String subject, String body, String sendFrom, CollabDTOResponse collabDTOResponse) {
+    public void sendEmail(String to, String subject, String body, String sendFrom, String replyTo, CollabDTOResponse collabDTOResponse) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
@@ -31,7 +31,7 @@ public class EmailService {
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(body, false);
-
+            helper.setReplyTo(replyTo);
             helper.setFrom("eiei@gmail.com", sendFrom);
 
             mailSender.send(message);

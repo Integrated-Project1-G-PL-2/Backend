@@ -138,7 +138,7 @@ public class BoardService {
         }
         Invitation invitation = invitationService.addInvitation(new Invitation(localUserFromEmail, board, BoardOfUser.Role.valueOf(collabDTORequest.getAccessRight())));
         CollabDTOResponse collabDTOResponse = new CollabDTOResponse(invitation.getLocalUser().getOid(), invitation.getLocalUser().getName(), invitation.getLocalUser().getEmail(), invitation.getRole(), null);
-        mailService.sendEmail(localUserFromEmail.getEmail(), emailConfig.getSubject(localUserFromToken.getName(), collabDTORequest.getAccessRight(), board.getName()), emailConfig.getBody(boardId), localUserFromToken.getName(), collabDTOResponse);
+        mailService.sendEmail(localUserFromEmail.getEmail(), emailConfig.getSubject(localUserFromToken.getName(), collabDTORequest.getAccessRight(), board.getName()), emailConfig.getBody(boardId), localUserFromToken.getName(), emailConfig.getReplyTo(), collabDTOResponse);
         return collabDTOResponse;
     }
 
