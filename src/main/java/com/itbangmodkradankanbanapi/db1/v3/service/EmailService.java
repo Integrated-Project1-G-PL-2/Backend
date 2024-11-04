@@ -35,8 +35,8 @@ public class EmailService {
             helper.setFrom("noreply@intproj23.sit.kmutt.ac.th", sendFrom);
             mailSender.send(message);
             collabDTOResponse.setMailStatus(true);
-        } catch (MessagingException | UnsupportedEncodingException e) {
-
+        } catch (Exception e) {
+            collabDTOResponse.setMailStatus(false);
         }
     }
 
