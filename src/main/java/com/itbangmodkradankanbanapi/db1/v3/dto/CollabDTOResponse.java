@@ -21,6 +21,7 @@ public class CollabDTOResponse {
     @Pattern(regexp = "WRITE|READ", message = "Access_right must be either 'WRITE' or 'READ'")
     private String accessRight;
     private ZonedDateTime addedOn;
+    private Boolean mailStatus;
 
     public CollabDTOResponse(String oid, String name, String email, BoardOfUser.Role role, ZonedDateTime addedOn) {
         this.name = name;

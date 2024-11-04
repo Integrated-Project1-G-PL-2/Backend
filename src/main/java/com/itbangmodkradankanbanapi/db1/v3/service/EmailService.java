@@ -1,6 +1,7 @@
 package com.itbangmodkradankanbanapi.db1.v3.service;
 
 import com.itbangmodkradankanbanapi.db1.config.EmailConfig;
+import com.itbangmodkradankanbanapi.db1.v3.dto.CollabDTOResponse;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.http.HttpStatus;
@@ -22,7 +23,7 @@ public class EmailService {
     private JavaMailSender mailSender;
 
     @Async
-    public void sendEmail(String to, String subject, String body, String sendFrom) {
+    public void sendEmail(String to, String subject, String body, String sendFrom, CollabDTOResponse collabDTOResponse) {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
@@ -34,8 +35,9 @@ public class EmailService {
             helper.setFrom("eiei@gmail.com", sendFrom);
 
             mailSender.send(message);
+            collabDTOResponse.setMailStatus(true);
         } catch (MessagingException | UnsupportedEncodingException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+
         }
     }
 

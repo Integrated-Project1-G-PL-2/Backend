@@ -1,5 +1,6 @@
 package com.itbangmodkradankanbanapi.db1.v3.service;
 
+import com.itbangmodkradankanbanapi.db1.v3.dto.CollabDTORequest;
 import com.itbangmodkradankanbanapi.db1.v3.dto.CollabDTOResponse;
 import com.itbangmodkradankanbanapi.db1.v3.entities.Board;
 import com.itbangmodkradankanbanapi.db1.v3.entities.BoardOfUser;
@@ -16,6 +17,10 @@ import com.itbangmodkradankanbanapi.exception.ItemNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -64,6 +69,15 @@ public class InvitationService {
         invitationRepository.delete(invitation);
     }
 
+
+    public void cancelInvitationFormId(String token, String id, String collabId) {
+        Invitation invitation = invitationRepository.findById(new Invitation.PendingId(id, collabId)).orElse(null);
+        if (invitation == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Invitation not found");
+        }
+        invitationRepository.delete(invitation);
+    }
+
     public List<Invitation> findAllByLocalUser(LocalUser localUser) {
         return invitationRepository.findAllByLocalUser(localUser);
     }
@@ -73,11 +87,21 @@ public class InvitationService {
         String oid = getOidFromToken(token);
         Invitation invitation = invitationRepository.findById(new Invitation.PendingId(id, oid)).orElse(null);
         if (invitation != null) {
-            LocalUser localUser = getOwner(invitation.getBoard());
-            return new CollabDTOResponse(invitation.getBoard().getName(), localUser.getName(), invitation.getRole().toString());
+            return new CollabDTOResponse(invitation.getBoard().getName(), invitation.getLocalUser().getName(), invitation.getRole().toString());
         }
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Invitation not found");
     }
+
+    public CollabDTOResponse editInvitation(String token, String id, CollabDTORequest collabDTORequest, String collabId) {
+        Invitation invitation = invitationRepository.findById(new Invitation.PendingId(id, collabId)).orElse(null);
+        if (invitation != null) {
+            invitation.setRole(BoardOfUser.Role.valueOf(collabDTORequest.getAccessRight()));
+            invitation = invitationRepository.save(invitation);
+            return new CollabDTOResponse(invitation.getBoard().getName(), invitation.getLocalUser().getName(), invitation.getRole().toString());
+        }
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Invitation not found");
+    }
+
 
     private String getOidFromToken(String token) {
         if (token.startsWith("Bearer ")) {

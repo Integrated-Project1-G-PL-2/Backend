@@ -136,9 +136,10 @@ public class BoardService {
         if (invitationService.findInvitationById(new Invitation.PendingId(board.getId(), localUserFromEmail.getOid())) != null) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "The user is already the collaborator of this board");
         }
-        mailService.sendEmail(localUserFromEmail.getEmail(), emailConfig.getSubject(localUserFromToken.getName(), collabDTORequest.getAccessRight(), board.getName()), emailConfig.getBody(boardId), localUserFromToken.getName());
         Invitation invitation = invitationService.addInvitation(new Invitation(localUserFromEmail, board, BoardOfUser.Role.valueOf(collabDTORequest.getAccessRight())));
-        return new CollabDTOResponse(invitation.getLocalUser().getOid(), invitation.getLocalUser().getName(), invitation.getLocalUser().getEmail(), invitation.getRole(), null);
+        CollabDTOResponse collabDTOResponse = new CollabDTOResponse(invitation.getLocalUser().getOid(), invitation.getLocalUser().getName(), invitation.getLocalUser().getEmail(), invitation.getRole(), null);
+        mailService.sendEmail(localUserFromEmail.getEmail(), emailConfig.getSubject(localUserFromToken.getName(), collabDTORequest.getAccessRight(), board.getName()), emailConfig.getBody(boardId), localUserFromToken.getName(), collabDTOResponse);
+        return collabDTOResponse;
     }
 
     public CollabDTOResponse addNewCollab(String token, String boardId) {
@@ -156,7 +157,6 @@ public class BoardService {
         Board board = getBoardById(boardId);
         LocalUser collabUser = getLocalById(collabId).orElseThrow(() -> new ItemNotFoundException("Collab oid '" + collabId + "' not found"));
         BoardOfUser boardOfUser = collabService.getCollabById(board, collabUser);
-        System.out.println("yyy");
         if (boardOfUser != null && !boardOfUser.getRole().equals(BoardOfUser.Role.OWNER)) {
             if (collabDTORequest.getAccessRight().equals("WRITE")) {
                 boardOfUser.setRole(BoardOfUser.Role.WRITE);
