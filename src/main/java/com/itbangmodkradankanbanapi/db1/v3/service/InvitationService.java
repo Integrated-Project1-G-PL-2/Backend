@@ -97,7 +97,7 @@ public class InvitationService {
         if (invitation != null) {
             invitation.setRole(BoardOfUser.Role.valueOf(collabDTORequest.getAccessRight()));
             invitation = invitationRepository.save(invitation);
-            return new CollabDTOResponse(invitation.getBoard().getName(), invitation.getLocalUser().getName(), invitation.getRole().toString());
+            return new CollabDTOResponse(invitation.getLocalUser().getOid(), invitation.getLocalUser().getName(), invitation.getLocalUser().getEmail(), invitation.getRole());
         }
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Invitation not found");
     }

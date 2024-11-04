@@ -32,8 +32,7 @@ public class EmailService {
             helper.setSubject(subject);
             helper.setText(body, false);
             helper.setReplyTo(replyTo);
-            helper.setFrom("eiei@gmail.com", sendFrom);
-
+            helper.setFrom("noreply@intproj23.sit.kmutt.ac.th", sendFrom);
             mailSender.send(message);
             collabDTOResponse.setMailStatus(true);
         } catch (MessagingException | UnsupportedEncodingException e) {

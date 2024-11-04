@@ -8,6 +8,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class EmailConfig {
     private String feSite;
     private String replyTo;
+    private String from;
 
     public String getSubject(String inviter, String accessRight, String boardName) {
         return inviter + " has invited you to collaborate with " + accessRight + " access right on " + boardName + " board";
