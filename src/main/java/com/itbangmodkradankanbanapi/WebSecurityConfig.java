@@ -47,6 +47,8 @@ public class WebSecurityConfig {
                 .authorizeRequests(
                         authorize -> authorize.requestMatchers("/login", "/error").permitAll()
                                 .requestMatchers("/token").permitAll()
+                                .requestMatchers("/v3/boards/{id}/invitation").hasAuthority("INVITATION")
+                                .requestMatchers("/v3/boards/{id}/invitation/{collabId}").hasAuthority("OWNER")
                                 .requestMatchers(HttpMethod.GET, "/v3/boards/**").hasAnyAuthority("PUBLIC-ACCESS", "OWNER", "COLLABORATOR-READER", "COLLABORATOR-WRITER")
                                 .requestMatchers(HttpMethod.GET, "/v3/boards").hasAnyAuthority("OWNER", "COLLABORATOR-READER", "COLLABORATOR-WRITER")
                                 .requestMatchers(HttpMethod.POST, "/v3/boards").hasAuthority("OWNER")

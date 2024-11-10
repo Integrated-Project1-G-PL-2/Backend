@@ -1,6 +1,7 @@
 package com.itbangmodkradankanbanapi;
 
 import com.itbangmodkradankanbanapi.db1.ListMapper;
+import com.itbangmodkradankanbanapi.db1.config.EmailConfig;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -21,6 +22,10 @@ public class ApplicationConfig {
         return ListMapper.getInstance();
     }
 
+    @Bean
+    public EmailConfig emailConfig() {
+        return EmailConfig.getInstance();
+    }
 
     @Value("${cors.allowed.origins}")
     private String allowedOrigins;

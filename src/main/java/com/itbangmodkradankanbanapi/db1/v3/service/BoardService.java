@@ -1,11 +1,13 @@
 package com.itbangmodkradankanbanapi.db1.v3.service;
 
 import com.itbangmodkradankanbanapi.db1.ListMapper;
+import com.itbangmodkradankanbanapi.db1.config.EmailConfig;
 import com.itbangmodkradankanbanapi.db1.v3.dto.*;
 import com.itbangmodkradankanbanapi.db1.v3.entities.*;
 import com.itbangmodkradankanbanapi.db1.v3.repositories.BoardOfUserRepository;
 import com.itbangmodkradankanbanapi.db1.v3.repositories.BoardRepository;
-import com.itbangmodkradankanbanapi.db1.v3.repositories.localUserRepository;
+import com.itbangmodkradankanbanapi.db1.v3.repositories.InvitationRepository;
+import com.itbangmodkradankanbanapi.db1.v3.repositories.LocalUserRepository;
 import com.itbangmodkradankanbanapi.db2.entities.User;
 import com.itbangmodkradankanbanapi.db2.repositories.UserRepository;
 import com.itbangmodkradankanbanapi.db2.services.JwtTokenUtil;
@@ -21,6 +23,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class BoardService {
@@ -40,7 +43,7 @@ public class BoardService {
     private UserRepository userRepository;
 
     @Autowired
-    private localUserRepository localUserRepository;
+    private LocalUserRepository localUserRepository;
 
     @Autowired
     private BoardRepository boardRepository;
@@ -57,15 +60,25 @@ public class BoardService {
     @Autowired
     private ListMapper listMapper;
 
+    @Autowired
+    private EmailService mailService;
+
+    @Autowired
+    private EmailConfig emailConfig;
+
+    @Autowired
+    private InvitationService invitationService;
 
     public List<Task> getAllTask(List<String> filterStatuses, String sortBy, String token, String boardId) {
         return taskService.findAllTask(filterStatuses, sortBy, boardId);
     }
 
-    public List<CollabDTOResponse> getAllCollabOfBoard(String boardId) {
+    public AllCollabDTOResponse getAllCollabOfBoard(String boardId) {
         Board board = getBoardById(boardId);
         List<BoardOfUser> boardOfUsers = collabService.getAllCollab(board);
-        return boardOfUsers.stream().map(element -> new CollabDTOResponse(element.getLocalUser().getOid(), element.getLocalUser().getName(), element.getLocalUser().getEmail(), element.getRole(), element.getAddedOn())).toList();
+        List<CollabDTOResponse> allCollab = boardOfUsers.stream().map(element -> new CollabDTOResponse(element.getLocalUser().getOid(), element.getLocalUser().getName(), element.getLocalUser().getEmail(), element.getRole(), element.getAddedOn())).toList();
+        List<CollabDTOResponse> allPending = invitationService.findAllInvitationFormBoardId(boardId).stream().map(element -> new CollabDTOResponse(element.getLocalUser().getOid(), element.getLocalUser().getName(), element.getLocalUser().getEmail(), element.getRole())).toList();
+        return new AllCollabDTOResponse(allCollab, allPending);
     }
 
     public List<Status> getAllStatus(String token, String boardId) {
@@ -105,8 +118,7 @@ public class BoardService {
         }
     }
 
-
-    public CollabDTOResponse addNewCollab(String token, CollabDTORequest collabDTORequest, String boardId) {
+    public CollabDTOResponse sendInvitation(String token, CollabDTORequest collabDTORequest, String boardId) {
         User userFromEmail = getUserByEmail(collabDTORequest.getEmail());
         LocalUser localUserFromEmail = getLocalById(userFromEmail.getOid()).orElse(null);
         if (localUserFromEmail == null && userFromEmail != null) {
@@ -121,7 +133,23 @@ public class BoardService {
         if (boardOfUser != null) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "The user is already the collaborator of this board");
         }
-        BoardOfUser boardOfUserResult = collabService.addNewCollab(board, localUserFromEmail, collabDTORequest.getAccessRight());
+        if (invitationService.findInvitationById(new Invitation.PendingId(board.getId(), localUserFromEmail.getOid())) != null) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "The user is already the collaborator of this board");
+        }
+        Invitation invitation = invitationService.addInvitation(new Invitation(localUserFromEmail, board, BoardOfUser.Role.valueOf(collabDTORequest.getAccessRight())));
+        CollabDTOResponse collabDTOResponse = new CollabDTOResponse(invitation.getLocalUser().getOid(), invitation.getLocalUser().getName(), invitation.getLocalUser().getEmail(), invitation.getRole(), null);
+        mailService.sendEmail(localUserFromEmail.getEmail(), emailConfig.getSubject(localUserFromToken.getName(), collabDTORequest.getAccessRight(), board.getName()), emailConfig.getBody(boardId), emailConfig.getFrom(), emailConfig.getReplyTo(), collabDTOResponse);
+        return collabDTOResponse;
+    }
+
+    public CollabDTOResponse addNewCollab(String token, String boardId) {
+        LocalUser localUserFromToken = getLocalUserFromToken(token);
+        Invitation pending = invitationService.findInvitationById(new Invitation.PendingId(boardId, localUserFromToken.getOid()));
+        if (pending == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "invitation not found");
+        }
+        invitationService.deleteInvitationFormId(token, boardId);
+        BoardOfUser boardOfUserResult = collabService.addNewCollab(pending.getBoard(), pending.getLocalUser(), pending.getRole().toString());
         return new CollabDTOResponse(boardOfUserResult.getLocalUser().getOid(), boardOfUserResult.getLocalUser().getName(), boardOfUserResult.getLocalUser().getEmail(), boardOfUserResult.getRole(), boardOfUserResult.getAddedOn());
     }
 
@@ -129,7 +157,6 @@ public class BoardService {
         Board board = getBoardById(boardId);
         LocalUser collabUser = getLocalById(collabId).orElseThrow(() -> new ItemNotFoundException("Collab oid '" + collabId + "' not found"));
         BoardOfUser boardOfUser = collabService.getCollabById(board, collabUser);
-        System.out.println("yyy");
         if (boardOfUser != null && !boardOfUser.getRole().equals(BoardOfUser.Role.OWNER)) {
             if (collabDTORequest.getAccessRight().equals("WRITE")) {
                 boardOfUser.setRole(BoardOfUser.Role.WRITE);
@@ -142,10 +169,10 @@ public class BoardService {
         throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can not do this action");
     }
 
-    public void deleteCollab( String token ,String boardId, String collabId) {
+    public void deleteCollab(String token, String boardId, String collabId) {
         Board board = getBoardById(boardId);
-        BoardOfUser boardOfUserFromToken = validateUserAndBoard(token,boardId);
-        if(boardOfUserFromToken.getRole().equals(BoardOfUser.Role.OWNER) || boardOfUserFromToken.getLocalUser().getOid().equals(collabId)){
+        BoardOfUser boardOfUserFromToken = validateUserAndBoard(token, boardId);
+        if (boardOfUserFromToken.getRole().equals(BoardOfUser.Role.OWNER) || boardOfUserFromToken.getLocalUser().getOid().equals(collabId)) {
             LocalUser user = getLocalById(collabId).orElseThrow(() -> new ItemNotFoundException("Collab oid '" + collabId + "' not found"));
             BoardOfUser boardOfUser = collabService.getCollabById(board, user);
             if (boardOfUser != null && !boardOfUser.getRole().equals(BoardOfUser.Role.OWNER)) {
@@ -183,19 +210,21 @@ public class BoardService {
         LocalUser localUser = localUserRepository.findById(getUserFromToken(token).getOid())
                 .orElseThrow(() -> new ItemNotFoundException("User not found"));
 
-        List<BoardOfUser> result = new ArrayList<>();
-
         List<BoardOfUser> ownerBoards = boardOfUserRepository.findAllByLocalUserAndRole(localUser, BoardOfUser.Role.OWNER);
         List<BoardOfUser> collaboratorBoards = boardOfUserRepository.findAllByLocalUserAndRole(localUser, BoardOfUser.Role.WRITE);
         List<BoardOfUser> visitorBoards = boardOfUserRepository.findAllByLocalUserAndRole(localUser, BoardOfUser.Role.READ);
+        List<Invitation> invitations = invitationService.findAllByLocalUser(localUser);
 
         Function<BoardOfUser, BoardOfUser> replaceWithOwner = boardOfUser -> {
-            LocalUser owner = boardOfUserRepository
-                    .findBoardOfUserByBoardAndRole(boardOfUser.getBoard(), BoardOfUser.Role.OWNER)
-                    .get(0)
-                    .getLocalUser();
+            LocalUser owner = getOwner(boardOfUser.getBoard());
             boardOfUser.setLocalUser(owner);
             return boardOfUser;
+        };
+
+        Function<Invitation, Invitation> replaceWithOwnerOfPending = invitation -> {
+            LocalUser owner = getOwner(invitation.getBoard());
+            invitation.setLocalUser(owner);
+            return invitation;
         };
 
         List<BoardOfUser> collaboratorResult = collaboratorBoards.stream()
@@ -206,10 +235,23 @@ public class BoardService {
                 .map(replaceWithOwner)
                 .collect(Collectors.toList());
 
-        result.addAll(collaboratorResult);
-        result.addAll(visitorResult);
-        AllBoardDTOResponse allBoardDTOResponse = new AllBoardDTOResponse(result,ownerBoards);
-        return allBoardDTOResponse;
+        List<Invitation> pending = invitations.stream()
+                .map(replaceWithOwnerOfPending)
+                .collect(Collectors.toList());
+
+        return new AllBoardDTOResponse(
+                Stream.concat(collaboratorResult.stream(), visitorResult.stream()).collect(Collectors.toList()),
+                ownerBoards,
+                pending
+        );
+    }
+
+    private LocalUser getOwner(Board board) {
+        return boardOfUserRepository.findBoardOfUserByBoardAndRole(board, BoardOfUser.Role.OWNER)
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new ItemNotFoundException("Owner not found"))
+                .getLocalUser();
     }
 
 
@@ -258,7 +300,7 @@ public class BoardService {
         return boardOfUserRepository.findBoardOfUserByBoardAndRole(board, BoardOfUser.Role.OWNER).get(0);
     }
 
-    private LocalUser getLocalUserFromToken(String token) {
+    public LocalUser getLocalUserFromToken(String token) {
         User user = getUserFromToken(token);
         String userOid = user.getOid();
         return localUserRepository.findById(userOid).orElseThrow(() -> new ItemNotFoundException("User not found"));
