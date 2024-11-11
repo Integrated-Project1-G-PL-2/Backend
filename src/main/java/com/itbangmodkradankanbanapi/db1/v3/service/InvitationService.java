@@ -87,7 +87,7 @@ public class InvitationService {
         String oid = getOidFromToken(token);
         Invitation invitation = invitationRepository.findById(new Invitation.PendingId(id, oid)).orElse(null);
         if (invitation != null) {
-            return new CollabDTOResponse(invitation.getBoard().getName(), invitation.getLocalUser().getName(), invitation.getRole().toString());
+            return new CollabDTOResponse( invitation.getLocalUser().getName(),invitation.getBoard().getName(), invitation.getRole().toString());
         }
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Invitation not found");
     }
