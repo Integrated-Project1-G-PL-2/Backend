@@ -88,6 +88,8 @@ public class JwtUserDetailsService implements UserDetailsService {
             roles.add(new SimpleGrantedAuthority("OWNER"));
         } else if (invitation != null) {
             roles.add(new SimpleGrantedAuthority("INVITATION"));
+        }else {
+            throw new ItemNotFoundException("active invitation not found");
         }
         return new AuthUser(user.getUsername(), user.getPassword(), roles);
     }
