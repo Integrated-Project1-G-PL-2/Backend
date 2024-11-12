@@ -3,18 +3,25 @@ package com.itbangmodkradankanbanapi.db1.v3.service;
 import com.itbangmodkradankanbanapi.db1.v3.dto.TaskDTO;
 import com.itbangmodkradankanbanapi.db1.v3.dto.TaskDTOForAdd;
 import com.itbangmodkradankanbanapi.db1.v3.entities.Board;
+import com.itbangmodkradankanbanapi.db1.v3.entities.FilesData;
 import com.itbangmodkradankanbanapi.db1.v3.entities.Status;
 import com.itbangmodkradankanbanapi.db1.v3.entities.Task;
 import com.itbangmodkradankanbanapi.exception.ItemNotFoundException;
 import com.itbangmodkradankanbanapi.exception.ItemNotFoundForUpdateAndDelete;
 import com.itbangmodkradankanbanapi.db1.v3.repositories.StatusRepository;
 import com.itbangmodkradankanbanapi.db1.v3.repositories.TaskRepository;
+import io.jsonwebtoken.io.IOException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class TaskService {
@@ -26,6 +33,8 @@ public class TaskService {
     private StatusRepository statusRepository;
     @Autowired
     private StatusService statusService;
+    @Autowired
+    private FilesDataService filesDataService;
 
     public Task findTaskById(String boardId, int id) throws ItemNotFoundException {
         return repository.findByBoard_IdAndId(boardId, id).orElseThrow(() -> new ItemNotFoundException("Task " + id + " does not exist !!!"));
@@ -72,7 +81,7 @@ public class TaskService {
         Task existingTaskV2 = repository.findByBoard_IdAndId(board.getId(), id).orElseThrow(
                 () -> new ItemNotFoundForUpdateAndDelete("NOT FOUND"));
         List<Status> allPossibleStatus = statusService.findAllStatus(board);
-        Status getStatus  = statusRepository.findById(taskDTO.getStatus()).orElseThrow(() -> new ItemNotFoundException("Status not found"));
+        Status getStatus = statusRepository.findById(taskDTO.getStatus()).orElseThrow(() -> new ItemNotFoundException("Status not found"));
         for (Status status : allPossibleStatus) {
             if (status.getId().equals(getStatus.getId())) {
                 existingTaskV2.setStatus(status);
@@ -85,5 +94,43 @@ public class TaskService {
         TaskDTO updateTaskDTO = mapper.map(savedTaskV2, TaskDTO.class);
         return updateTaskDTO;
     }
+
+    @Transactional
+    public TaskDTO updateFileInTask(Board board, Integer id, MultipartFile[] files) throws IOException {
+        Task existingTask = repository.findByBoard_IdAndId(board.getId(), id)
+                .orElseThrow(() -> new ItemNotFoundForUpdateAndDelete("Task not found"));
+
+
+        Set<String> existingFileNames = filesDataService.getAllFilesOfTask(id)
+                .stream()
+                .map(FilesData::getName)
+                .collect(Collectors.toSet());
+
+        Set<String> incomingFileNames = Arrays.stream(files)
+                .map(MultipartFile::getOriginalFilename)
+                .collect(Collectors.toSet());
+        // check amount of file
+        int totalFileCount = existingFileNames.size() + incomingFileNames.size();
+        if (totalFileCount > 10) {
+            throw new IOException("Max file limit exceeded (10 files).");
+        }
+        // check duplicate
+        Set<String> duplicateCheck = new HashSet<>(incomingFileNames);
+        duplicateCheck.retainAll(existingFileNames);
+        if (!duplicateCheck.isEmpty()) {
+            throw new IOException("Duplicate file names detected: " + duplicateCheck);
+        }
+
+        try {
+            for (MultipartFile file : files) {
+                filesDataService.uploadFile(file, existingTask);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return mapper.map(existingTask, TaskDTO.class);
+    }
+
+
 }
 

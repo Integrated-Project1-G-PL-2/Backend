@@ -16,6 +16,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
@@ -268,6 +269,11 @@ public class BoardService {
     public TaskDTO editTaskOfBoard(TaskDTOForAdd task, String token, String boardId, int taskId) {
         Board board = getBoardById(boardId);
         return taskService.updateTask(board, taskId, task);
+    }
+
+    public void addNewFileToTask(String boardId, int taskId, MultipartFile[] files) {
+        Board board = getBoardById(boardId);
+        taskService.updateFileInTask(board, taskId, files);
     }
 
     public StatusDTO editStatusOfBoard(StatusDTO statusDTO, String token, String boardId, int statusId) {
