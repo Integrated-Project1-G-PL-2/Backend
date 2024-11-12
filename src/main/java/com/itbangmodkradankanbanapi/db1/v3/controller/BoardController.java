@@ -49,6 +49,4 @@ public class BoardController {
         }
         return ResponseEntity.ok(boardService.editBoard(boardDTO, token, id));
     }
-
-
 }
