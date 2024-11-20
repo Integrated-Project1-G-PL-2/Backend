@@ -256,7 +256,7 @@ public class BoardService {
     }
 
 
-    public TaskDTO addNewTaskToBoard(TaskDTOForAdd task, String token, String boardId) {
+    public TaskDTO addNewTaskToBoard(TaskDTOForAdd task, String boardId) {
         Board board = getBoardById(boardId);
         return taskService.createNewTask(task, board);
     }
