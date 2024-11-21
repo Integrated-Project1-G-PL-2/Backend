@@ -13,9 +13,11 @@ import com.itbangmodkradankanbanapi.db1.v3.repositories.TaskRepository;
 import io.jsonwebtoken.io.IOException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -34,7 +36,7 @@ public class TaskService {
     @Autowired
     private StatusService statusService;
     @Autowired
-    private FilesDataService filesDataService;
+    private StorageService storageService;
 
     public Task findTaskById(String boardId, int id) throws ItemNotFoundException {
         return repository.findByBoard_IdAndId(boardId, id).orElseThrow(() -> new ItemNotFoundException("Task " + id + " does not exist !!!"));
@@ -43,15 +45,18 @@ public class TaskService {
     public List<Task> findAllTask(List<String> statusNames, String sortBy, String boardId) {
         List<Task> taskV2List;
         if (statusNames == null || statusNames.isEmpty()) {
-            taskV2List = repository.findAllTaskByBoardId(boardId);
+            taskV2List = repository.findAllByBoard_Id(boardId);
         } else {
             taskV2List = repository.findAllByStatusNamesSorted(statusNames, sortBy, boardId);
         }
+        taskV2List = taskV2List.stream()
+                .peek(task -> task.setFilesDataList(new HashSet<>(storageService.getAllFile(task))))
+                .toList();
         return taskV2List;
     }
 
     @Transactional
-    public TaskDTO createNewTask(TaskDTOForAdd newTask, Board board) {
+    public TaskDTO createNewTask(TaskDTOForAdd newTask, Board board, MultipartFile[] file) {
         Status statusObj = null;
         if (newTask.getStatus() != null) {
             statusObj = statusRepository.findById(newTask.getStatus()).orElseThrow(() -> new ItemNotFoundForUpdateAndDelete("Status not found on this board"));
@@ -61,11 +66,15 @@ public class TaskService {
         } else {
             statusObj = statusRepository.findByNameAndBoardIsNull("No Status").orElseThrow(() -> new ItemNotFoundForUpdateAndDelete("Status not found on this board"));
         }
+
         Task taskV2 = mapper.map(newTask, Task.class);
         taskV2.setStatus(statusObj);
         taskV2.setBoard(board);
         Task savedTaskV2 = repository.saveAndFlush(taskV2);
-        return mapper.map(savedTaskV2, TaskDTO.class);
+        Set<FilesData> uploadFileInTask = uploadFileInTask(savedTaskV2, file, false);
+        TaskDTO saveTasKDTO = mapper.map(savedTaskV2, TaskDTO.class);
+        saveTasKDTO.setFilesDataList(uploadFileInTask);
+        return saveTasKDTO;
     }
 
     @Transactional
@@ -77,7 +86,7 @@ public class TaskService {
     }
 
     @Transactional
-    public TaskDTO updateTask(Board board, Integer id, TaskDTOForAdd taskDTO) {
+    public TaskDTO updateTask(Board board, Integer id, TaskDTOForAdd taskDTO, MultipartFile[] files) {
         Task existingTaskV2 = repository.findByBoard_IdAndId(board.getId(), id).orElseThrow(
                 () -> new ItemNotFoundForUpdateAndDelete("NOT FOUND"));
         List<Status> allPossibleStatus = statusService.findAllStatus(board);
@@ -91,46 +100,40 @@ public class TaskService {
         existingTaskV2.setTitle(taskDTO.getTitle());
         existingTaskV2.setAssignees(taskDTO.getAssignees());
         Task savedTaskV2 = repository.save(existingTaskV2);
+        Set<FilesData> uploadFileInTask = uploadFileInTask(savedTaskV2, files, true);
         TaskDTO updateTaskDTO = mapper.map(savedTaskV2, TaskDTO.class);
+        updateTaskDTO.setFilesDataList(uploadFileInTask);
         return updateTaskDTO;
     }
 
-    @Transactional
-    public TaskDTO updateFileInTask(Board board, Integer id, MultipartFile[] files) throws IOException {
-        Task existingTask = repository.findByBoard_IdAndId(board.getId(), id)
-                .orElseThrow(() -> new ItemNotFoundForUpdateAndDelete("Task not found"));
-
-
-        Set<String> existingFileNames = filesDataService.getAllFilesOfTask(id)
-                .stream()
-                .map(FilesData::getName)
-                .collect(Collectors.toSet());
-
-        Set<String> incomingFileNames = Arrays.stream(files)
-                .map(MultipartFile::getOriginalFilename)
-                .collect(Collectors.toSet());
-        // check amount of file
-        int totalFileCount = existingFileNames.size() + incomingFileNames.size();
-        if (totalFileCount > 10) {
-            throw new IOException("Max file limit exceeded (10 files).");
-        }
-        // check duplicate
-        Set<String> duplicateCheck = new HashSet<>(incomingFileNames);
-        duplicateCheck.retainAll(existingFileNames);
-        if (!duplicateCheck.isEmpty()) {
-            throw new IOException("Duplicate file names detected: " + duplicateCheck);
-        }
-
-        try {
-            for (MultipartFile file : files) {
-                filesDataService.uploadFile(file, existingTask);
+    private Set<FilesData> uploadFileInTask(Task task, MultipartFile[] files, Boolean isEditing) {
+        if (files != null) {
+            Set<FilesData> resultFileData = new HashSet<>();
+            int amountOfFile = storageService.countFilesInTask(task);
+            System.out.println("amount of file = " + amountOfFile);
+            if (files.length + amountOfFile > 10) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Maximum files in one task is 10");
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+            List<String> existFile = Arrays.stream(files).map(MultipartFile::getOriginalFilename).filter(originalFilename -> {
+                return storageService.isExistFile(task, originalFilename);
+            }).toList();
+            if (existFile.isEmpty()) {
+                if (isEditing) {
+                    List<FilesData> filesDataList = storageService.getAllFile(task);
+                    for (FilesData filesData : filesDataList) {
+                        storageService.deleteFile(filesData);
+                    }
+                }
+                for (MultipartFile file : files) {
+                    resultFileData.add(storageService.uploadFile(file, task));
+                }
+                return resultFileData;
+            } else {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "File name " + existFile + " already exist");
+            }
+
         }
-        return mapper.map(existingTask, TaskDTO.class);
+        return null;
     }
-
-
 }
 

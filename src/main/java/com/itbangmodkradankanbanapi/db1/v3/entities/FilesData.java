@@ -21,6 +21,9 @@ public class FilesData {
     private String name;
     private String type;
     private String path;
+
+
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name = "tasks_id", referencedColumnName = "id")
     private Task task;

@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -22,6 +23,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 @Service
 public class StorageService {
@@ -35,28 +37,29 @@ public class StorageService {
     @Autowired
     private FilesRepository filesRepository;
 
+    @Transactional
     public FilesData uploadFile(MultipartFile file, Task task) {
         File fileObj = convertMultiPartFileToFile(file);
-        String fileName = NanoId.generate(10) + "_" + file.getOriginalFilename();
-
+        String id = NanoId.generate(10);
+        String fileName = id + "_" + file.getOriginalFilename();
         try {
-            String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8.toString());
+            String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8);
             s3Client.putObject(new PutObjectRequest(bucketName, encodedFileName, fileObj));
 
             String fileUrl = s3Client.getUrl(bucketName, encodedFileName).toString();
 
             fileObj.delete();
 
-
+            String fileExtension = getFileExtension(file.getOriginalFilename());
             FilesData fileData = FilesData.builder()
+                    .id(id)
                     .name(file.getOriginalFilename())
                     .path(fileUrl)
-                    .type(file.getContentType())
+                    .type(fileExtension)
                     .task(task)
                     .build();
 
             return filesRepository.save(fileData);
-
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
@@ -90,4 +93,26 @@ public class StorageService {
         }
         return convertedFile;
     }
+
+    public int countFilesInTask(Task task) {
+        return filesRepository.countByTaskId(task.getId());
+    }
+
+    public Boolean isExistFile(Task task, String fileName) {
+        return filesRepository.existsByTask_IdAndName(task.getId(), fileName);
+    }
+
+
+    private String getFileExtension(String fileName) {
+        if (fileName == null || !fileName.contains(".")) {
+            return "";
+        }
+        return fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
+    }
+
+    public List<FilesData> getAllFile(Task task) {
+        return filesRepository.findAllByTask_Id(task.getId());
+    }
+
+
 }

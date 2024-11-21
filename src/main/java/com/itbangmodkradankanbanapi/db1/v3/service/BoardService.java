@@ -70,7 +70,8 @@ public class BoardService {
     @Autowired
     private InvitationService invitationService;
 
-    public List<Task> getAllTask(List<String> filterStatuses, String sortBy, String token, String boardId) {
+    public List<Task> getAllTask(List<String> filterStatuses, String sortBy, String boardId) {
+
         return taskService.findAllTask(filterStatuses, sortBy, boardId);
     }
 
@@ -256,9 +257,9 @@ public class BoardService {
     }
 
 
-    public TaskDTO addNewTaskToBoard(TaskDTOForAdd task, String boardId) {
+    public TaskDTO addNewTaskToBoard(TaskDTOForAdd task, String boardId, MultipartFile[] file) {
         Board board = getBoardById(boardId);
-        return taskService.createNewTask(task, board);
+        return taskService.createNewTask(task, board, file);
     }
 
     public StatusDTO addNewStatusToBoard(StatusDTO statusDTO, String token, String boardId) {
@@ -266,14 +267,9 @@ public class BoardService {
         return statusService.createNewStatus(statusDTO, board);
     }
 
-    public TaskDTO editTaskOfBoard(TaskDTOForAdd task, String token, String boardId, int taskId) {
+    public TaskDTO editTaskOfBoard(TaskDTOForAdd task, String boardId, int taskId, MultipartFile[] files) {
         Board board = getBoardById(boardId);
-        return taskService.updateTask(board, taskId, task);
-    }
-
-    public void addNewFileToTask(String boardId, int taskId, MultipartFile[] files) {
-        Board board = getBoardById(boardId);
-        taskService.updateFileInTask(board, taskId, files);
+        return taskService.updateTask(board, taskId, task, files);
     }
 
     public StatusDTO editStatusOfBoard(StatusDTO statusDTO, String token, String boardId, int statusId) {
