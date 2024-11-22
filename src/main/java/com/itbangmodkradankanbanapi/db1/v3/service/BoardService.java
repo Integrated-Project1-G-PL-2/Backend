@@ -277,8 +277,13 @@ public class BoardService {
         return statusService.updateStatus(board, statusId, statusDTO);
     }
 
-    public TaskDTO deleteTaskOfBoard(String token, String boardId, int taskId) {
+    public TaskDTO deleteTaskOfBoard(String boardId, int taskId) {
         return taskService.deleteTask(boardId, taskId);
+    }
+
+    public TaskDTO deleteFileFromTask(String boardId, int taskId, String filename) {
+
+        return taskService.deleteFileFormTask(boardId, taskId, filename);
     }
 
     public void deleteStatusOfBoard(String token, String boardId, int statusId) {

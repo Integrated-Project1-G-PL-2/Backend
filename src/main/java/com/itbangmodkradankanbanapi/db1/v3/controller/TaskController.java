@@ -79,10 +79,17 @@ public class TaskController {
         return ResponseEntity.ok(boardService.editTaskOfBoard(task, id, taskId, null));
     }
 
+
     //tested
     @DeleteMapping("/{taskId}")
     public ResponseEntity<TaskDTO> deleteTaskOfBoard(@RequestHeader("Authorization") String token, @PathVariable String id, @PathVariable int taskId) {
-        return ResponseEntity.ok(boardService.deleteTaskOfBoard(token, id, taskId));
+        return ResponseEntity.ok(boardService.deleteTaskOfBoard(id, taskId));
     }
+
+    @DeleteMapping("/{taskId}/file/{filename}")
+    public ResponseEntity<TaskDTO> deleteFileFromTask(@PathVariable String filename, @PathVariable String id, @PathVariable int taskId) {
+        return ResponseEntity.ok(boardService.deleteFileFromTask(id, taskId, filename));
+    }
+
 
 }
