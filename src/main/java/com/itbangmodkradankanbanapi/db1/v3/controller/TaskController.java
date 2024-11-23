@@ -45,20 +45,7 @@ public class TaskController {
 
     //tested
     @PostMapping("")
-    public ResponseEntity<Object> addNewTaskToBoard(@PathVariable String id, @Valid @RequestPart("taskDetails") TaskDTOForAdd task,
-                                                    @RequestParam(value = "file", required = false) MultipartFile[] files) {
-
-        if (files != null) {
-            if (files.length > 10) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Maximum file count is 10");
-            }
-            files = Arrays.stream(files)
-                    .filter(file -> !file.isEmpty())
-                    .toArray(MultipartFile[]::new);
-            if (files.length > 0) {
-                return ResponseEntity.status(HttpStatus.CREATED).body(boardService.addNewTaskToBoard(task, id, files));
-            }
-        }
+    public ResponseEntity<Object> addNewTaskToBoard(@Valid @RequestBody TaskDTOForAdd task, @RequestHeader("Authorization") String token, @PathVariable String id) {
         return ResponseEntity.status(HttpStatus.CREATED).body(boardService.addNewTaskToBoard(task, id, null));
     }
 

@@ -53,7 +53,7 @@ public class StorageService {
             String fileExtension = getFileExtension(file.getOriginalFilename());
             FilesData fileData = FilesData.builder()
                     .id(id)
-                    .name(file.getOriginalFilename())
+                    .name(getFileNameWithoutExtension(file.getOriginalFilename()))
                     .path(fileUrl)
                     .type(fileExtension)
                     .task(task)
@@ -112,6 +112,14 @@ public class StorageService {
 
     public List<FilesData> getAllFile(Task task) {
         return filesRepository.findAllByTask_Id(task.getId());
+    }
+
+    private String getFileNameWithoutExtension(String fileName) {
+        if (fileName == null || fileName.isEmpty()) {
+            return fileName;
+        }
+        int dotIndex = fileName.lastIndexOf('.');
+        return (dotIndex == -1) ? fileName : fileName.substring(0, dotIndex);
     }
 
 
