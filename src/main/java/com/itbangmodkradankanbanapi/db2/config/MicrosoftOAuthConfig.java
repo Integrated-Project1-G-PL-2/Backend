@@ -16,6 +16,7 @@ public class MicrosoftOAuthConfig {
     private String authorizationEndpoint;
     private String tokenEndpoint;
     private String meEndpoint;
+    private String tenantId;
 }
 
 

@@ -38,8 +38,8 @@ public class MicrosoftOAuthController {
         response.sendRedirect(authorizationUrl);
     }
 
-    @PostMapping("/callback/login")
-    public ResponseEntity<String> handleCallback(@RequestParam String code) {
+    @GetMapping("/callback/login")
+    public ResponseEntity<Map<String, Object>> handleCallback(@RequestParam String code) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
@@ -47,7 +47,7 @@ public class MicrosoftOAuthController {
         body.add("client_id", oAuthConfig.getClientId());
         body.add("client_secret", oAuthConfig.getClientSecret());
         body.add("code", code);
-        body.add("redirect_uri", oAuthConfig.getRedirectUri() + "/callback/login");
+        body.add("redirect_uri", oAuthConfig.getRedirectUri());
         body.add("grant_type", "authorization_code");
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
@@ -60,9 +60,7 @@ public class MicrosoftOAuthController {
         }
 
         Map<String, Object> tokens = tokenResponse.getBody();
-        String accessToken = (String) tokens.get("access_token");
-        
-        return ResponseEntity.ok("Access Token: " + accessToken);
+        return ResponseEntity.ok(tokens);
     }
 
 

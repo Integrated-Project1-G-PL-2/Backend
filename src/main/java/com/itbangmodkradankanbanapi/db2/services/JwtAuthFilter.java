@@ -1,9 +1,12 @@
 package com.itbangmodkradankanbanapi.db2.services;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itbangmodkradankanbanapi.db1.v3.entities.Board;
 import com.itbangmodkradankanbanapi.db1.v3.repositories.BoardRepository;
 import com.itbangmodkradankanbanapi.db1.v3.service.BoardService;
+import com.itbangmodkradankanbanapi.db2.config.MicrosoftOAuthConfig;
 import com.itbangmodkradankanbanapi.db2.entities.User;
 import com.itbangmodkradankanbanapi.db2.repositories.UserRepository;
 import com.itbangmodkradankanbanapi.exception.ErrorResponse;
@@ -38,7 +41,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private BoardRepository boardRepository;
+    private MicrosoftAuthService microsoftAuthService;
+
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
@@ -51,12 +55,18 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         String oid = null;
         String jwtToken = null;
+        boolean isMicrosoft = false;
         // token ถูก
         if (requestTokenHeader != null) {
             if (requestTokenHeader.startsWith("Bearer ")) {
                 jwtToken = requestTokenHeader.substring(7);
                 try {
-                    oid = jwtTokenUtil.getOidFromToken(jwtToken);
+                    if (microsoftAuthService.isMicrosoftIssuer(jwtToken) && microsoftAuthService.validateAccessToken(jwtToken)) {
+                        oid = microsoftAuthService.getOidFromAccessToken(jwtToken);
+
+                    } else {
+                        oid = jwtTokenUtil.getOidFromToken(jwtToken);
+                    }
                 } catch (SecurityException | MalformedJwtException e) {
                     request.setAttribute("Error-Message", "Invalid JWT token");
                 } catch (ExpiredJwtException e) {
@@ -72,7 +82,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 request.setAttribute("Error-Message", "Token not starting with Bearer");
             }
         }
-
 
         if (oid != null) {
             User user = userRepository.findByOid(oid);
