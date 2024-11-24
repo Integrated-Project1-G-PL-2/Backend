@@ -15,10 +15,15 @@ import java.util.Map;
 
 @Service
 public class MicrosoftAuthService {
-    @Autowired
-    private MicrosoftOAuthConfig oAuthConfig;
 
-    private String issuer = "https://login.microsoftonline.com/" + oAuthConfig.getTenantId() + "/v2.0";
+    private MicrosoftOAuthConfig oAuthConfig;
+    private String issuer;
+
+    @Autowired
+    public MicrosoftAuthService(MicrosoftOAuthConfig oAuthConfig) {
+        this.oAuthConfig = oAuthConfig;
+        issuer = "https://login.microsoftonline.com/" + oAuthConfig.getTenantId() + "/v2.0";
+    }
 
 
     public boolean isMicrosoftIssuer(String idToken) {
