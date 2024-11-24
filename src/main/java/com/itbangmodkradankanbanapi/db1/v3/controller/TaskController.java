@@ -79,5 +79,10 @@ public class TaskController {
         return ResponseEntity.ok(boardService.deleteFileFromTask(id, taskId, filesDTO));
     }
 
+    @DeleteMapping("/{taskId}/file/{filename}")
+    public ResponseEntity<TaskDTO> deleteFileFromTask(@PathVariable String filename, @PathVariable String id, @PathVariable int taskId) {
+        return ResponseEntity.ok(boardService.deleteFileFromTask1(id, taskId, filename));
+    }
+
 
 }

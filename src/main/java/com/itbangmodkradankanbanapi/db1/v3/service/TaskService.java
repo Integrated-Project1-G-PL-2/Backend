@@ -125,6 +125,14 @@ public class TaskService {
         return mapper.map(taskV2, TaskDTO.class);
     }
 
+    public TaskDTO deleteFileFormTask1(String boardId, int id, String fileName) {
+        Task taskV2 = findTaskById(boardId, id);
+        FilesData existFile = storageService.getAllFile(taskV2).stream().filter(fileData -> fileData.getPath().substring(fileData.getPath().lastIndexOf("/") + 1).equals(fileName)).findFirst().orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "File doesn't exist"));
+        storageService.deleteFile(existFile);
+        taskV2.setFilesDataList(new HashSet<>(storageService.getAllFile(taskV2)));
+        return mapper.map(taskV2, TaskDTO.class);
+    }
+
     private Set<FilesData> uploadFileInTask(Task task, MultipartFile[] files, Boolean isEditing) {
         if (files != null) {
             Set<FilesData> resultFileData = new HashSet<>();

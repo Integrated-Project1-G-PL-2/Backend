@@ -285,6 +285,10 @@ public class BoardService {
         return taskService.deleteFileFormTask(boardId, taskId, filesDTO);
     }
 
+    public TaskDTO deleteFileFromTask1(String boardId, int taskId, String fileName) {
+        return taskService.deleteFileFormTask1(boardId, taskId, fileName);
+    }
+
     public void deleteStatusOfBoard(String token, String boardId, int statusId) {
         Board board = getBoardById(boardId);
         statusService.deleteStatus(board, statusId);
