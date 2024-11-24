@@ -1,5 +1,6 @@
 package com.itbangmodkradankanbanapi.db1.v3.controller;
 
+import com.itbangmodkradankanbanapi.db1.v3.dto.FilesDTO;
 import com.itbangmodkradankanbanapi.db1.v3.dto.TaskDTO;
 import com.itbangmodkradankanbanapi.db1.v3.dto.TaskDTOForAdd;
 import com.itbangmodkradankanbanapi.db1.v3.service.BoardService;
@@ -73,9 +74,9 @@ public class TaskController {
         return ResponseEntity.ok(boardService.deleteTaskOfBoard(id, taskId));
     }
 
-    @DeleteMapping("/{taskId}/file/{filename}")
-    public ResponseEntity<TaskDTO> deleteFileFromTask(@PathVariable String filename, @PathVariable String id, @PathVariable int taskId) {
-        return ResponseEntity.ok(boardService.deleteFileFromTask(id, taskId, filename));
+    @DeleteMapping("/{taskId}/files")
+    public ResponseEntity<TaskDTO> deleteFileFromTask(@RequestBody FilesDTO filesDTO, @PathVariable String id, @PathVariable int taskId) {
+        return ResponseEntity.ok(boardService.deleteFileFromTask(id, taskId, filesDTO));
     }
 
 

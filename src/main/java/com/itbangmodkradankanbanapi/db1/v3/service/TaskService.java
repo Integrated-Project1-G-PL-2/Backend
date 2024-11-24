@@ -1,5 +1,6 @@
 package com.itbangmodkradankanbanapi.db1.v3.service;
 
+import com.itbangmodkradankanbanapi.db1.v3.dto.FilesDTO;
 import com.itbangmodkradankanbanapi.db1.v3.dto.TaskDTO;
 import com.itbangmodkradankanbanapi.db1.v3.dto.TaskDTOForAdd;
 import com.itbangmodkradankanbanapi.db1.v3.entities.Board;
@@ -106,10 +107,20 @@ public class TaskService {
         return updateTaskDTO;
     }
 
-    public TaskDTO deleteFileFormTask(String boardId, int id, String fileName) {
+    public TaskDTO deleteFileFormTask(String boardId, int id, FilesDTO filesDTO) {
         Task taskV2 = findTaskById(boardId, id);
-        FilesData existFile = storageService.getAllFile(taskV2).stream().filter(filesData -> filesData.getName().equals(fileName)).findFirst().orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "File doesn't exist"));
-        storageService.deleteFile(existFile);
+        List<FilesData> existFile = null;
+        for (String file : filesDTO.getFiles()) {
+            existFile = storageService.getAllFile(taskV2).stream().filter(fileData -> {
+                String fileName = fileData.getPath().substring(fileData.getPath().lastIndexOf("/") + 1);
+                return fileName.equals(file);
+            }).collect(Collectors.toList());
+        }
+        if (existFile != null && existFile.size() == filesDTO.getFiles().length) {
+            for (FilesData file : existFile) {
+                storageService.deleteFile(file);
+            }
+        }
         taskV2.setFilesDataList(new HashSet<>(storageService.getAllFile(taskV2)));
         return mapper.map(taskV2, TaskDTO.class);
     }
