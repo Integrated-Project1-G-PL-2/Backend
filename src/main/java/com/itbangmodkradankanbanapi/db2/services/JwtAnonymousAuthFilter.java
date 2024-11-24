@@ -33,6 +33,12 @@ public class JwtAnonymousAuthFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
+        System.out.println(request.getMethod());
+        System.out.println(request.getServletPath());
+        if (request.getServletPath().equals("/login/microsoft") || request.getServletPath().equals("/callback/login") || request.getServletPath().equals("/favicon.ico")) {
+            chain.doFilter(request, response);
+            return;
+        }
         //PUBLIC ACCESS CHECK
         if (HttpMethod.GET.matches(request.getMethod()) && SecurityContextHolder.getContext().getAuthentication() == null && request.getAttribute("Error-Message") == null) {
             List<GrantedAuthority> authorities = new LinkedList<>();

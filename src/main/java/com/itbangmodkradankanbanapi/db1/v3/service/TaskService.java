@@ -126,12 +126,6 @@ public class TaskService {
                 return storageService.isExistFile(task, originalFilename);
             }).toList();
             if (existFile.isEmpty()) {
-                if (isEditing) {
-                    List<FilesData> filesDataList = storageService.getAllFile(task);
-                    for (FilesData filesData : filesDataList) {
-                        storageService.deleteFile(filesData);
-                    }
-                }
                 for (MultipartFile file : files) {
                     resultFileData.add(storageService.uploadFile(file, task));
                 }
