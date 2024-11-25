@@ -3,8 +3,11 @@ package com.itbangmodkradankanbanapi.db1.v3.entities;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.time.ZonedDateTime;
+import java.util.Set;
 
 @Entity
 @Data
@@ -26,6 +29,10 @@ public class Task {
     @ManyToOne
     @JoinColumn(name = "taskStatus")
     private Status status;
+
+    @EqualsAndHashCode.Exclude
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<FilesData> filesDataList;
 
     @Column(name = "createdOn", insertable = false, updatable = false)
     private ZonedDateTime createdOn;

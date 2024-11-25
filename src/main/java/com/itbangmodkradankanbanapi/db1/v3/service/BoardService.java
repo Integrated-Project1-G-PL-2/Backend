@@ -16,6 +16,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
@@ -69,7 +70,8 @@ public class BoardService {
     @Autowired
     private InvitationService invitationService;
 
-    public List<Task> getAllTask(List<String> filterStatuses, String sortBy, String token, String boardId) {
+    public List<Task> getAllTask(List<String> filterStatuses, String sortBy, String boardId) {
+
         return taskService.findAllTask(filterStatuses, sortBy, boardId);
     }
 
@@ -255,9 +257,9 @@ public class BoardService {
     }
 
 
-    public TaskDTO addNewTaskToBoard(TaskDTOForAdd task, String token, String boardId) {
+    public TaskDTO addNewTaskToBoard(TaskDTOForAdd task, String boardId, MultipartFile[] file) {
         Board board = getBoardById(boardId);
-        return taskService.createNewTask(task, board);
+        return taskService.createNewTask(task, board, file);
     }
 
     public StatusDTO addNewStatusToBoard(StatusDTO statusDTO, String token, String boardId) {
@@ -265,9 +267,9 @@ public class BoardService {
         return statusService.createNewStatus(statusDTO, board);
     }
 
-    public TaskDTO editTaskOfBoard(TaskDTOForAdd task, String token, String boardId, int taskId) {
+    public TaskDTO editTaskOfBoard(TaskDTOForAdd task, String boardId, int taskId, MultipartFile[] files) {
         Board board = getBoardById(boardId);
-        return taskService.updateTask(board, taskId, task);
+        return taskService.updateTask(board, taskId, task, files);
     }
 
     public StatusDTO editStatusOfBoard(StatusDTO statusDTO, String token, String boardId, int statusId) {
@@ -275,8 +277,16 @@ public class BoardService {
         return statusService.updateStatus(board, statusId, statusDTO);
     }
 
-    public TaskDTO deleteTaskOfBoard(String token, String boardId, int taskId) {
+    public TaskDTO deleteTaskOfBoard(String boardId, int taskId) {
         return taskService.deleteTask(boardId, taskId);
+    }
+
+    public TaskDTO deleteFileFromTask(String boardId, int taskId, FilesDTO filesDTO) {
+        return taskService.deleteFileFormTask(boardId, taskId, filesDTO);
+    }
+
+    public TaskDTO deleteFileFromTask1(String boardId, int taskId, String fileName) {
+        return taskService.deleteFileFormTask1(boardId, taskId, fileName);
     }
 
     public void deleteStatusOfBoard(String token, String boardId, int statusId) {

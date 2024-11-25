@@ -1,8 +1,11 @@
 package com.itbangmodkradankanbanapi.db1.v3.dto;
 
+import com.itbangmodkradankanbanapi.db1.v3.entities.FilesData;
 import com.itbangmodkradankanbanapi.db1.v3.entities.Status;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+
+import java.util.Set;
 
 @Data
 public class TaskDTO {
@@ -14,6 +17,7 @@ public class TaskDTO {
     @Size(max = 30, min = 1)
     private String assignees;
     private Status status;
+    private Set<FilesData> filesDataList;
 
 
     public void setDescription(String description) {

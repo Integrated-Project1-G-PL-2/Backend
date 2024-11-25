@@ -45,7 +45,7 @@ public class WebSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.csrf(csrf -> csrf.disable())
                 .authorizeRequests(
-                        authorize -> authorize.requestMatchers("/login", "/error").permitAll()
+                        authorize -> authorize.requestMatchers("/login/**", "/callback/login", "/error", "/favicon.ico").permitAll()
                                 .requestMatchers("/token").permitAll()
                                 .requestMatchers("/v3/boards/{id}/invitation").hasAuthority("INVITATION")
                                 .requestMatchers("/v3/boards/{id}/invitation/{collabId}").hasAuthority("OWNER")
