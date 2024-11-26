@@ -76,6 +76,7 @@ public class StorageService {
         }
     }
 
+    @Transactional
     public void deleteFile(FilesData fileData) {
         String fileUrl = fileData.getPath();
         String fileName = fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
