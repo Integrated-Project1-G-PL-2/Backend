@@ -1,6 +1,7 @@
 package com.itbangmodkradankanbanapi.db2.controller;
 
 import com.itbangmodkradankanbanapi.db2.config.MicrosoftOAuthConfig;
+import com.itbangmodkradankanbanapi.db2.dto.MicrosoftLogin;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -38,15 +39,15 @@ public class MicrosoftOAuthController {
         response.sendRedirect(authorizationUrl);
     }
 
-    @GetMapping("/callback/login")
-    public ResponseEntity<Map<String, Object>> handleCallback(@RequestParam String code) {
+    @PostMapping("/callback/login")
+    public ResponseEntity<Map<String, Object>> handleCallback(@RequestBody MicrosoftLogin microsoftLogin) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("client_id", oAuthConfig.getClientId());
         body.add("client_secret", oAuthConfig.getClientSecret());
-        body.add("code", code);
+        body.add("code", microsoftLogin.getCode());
         body.add("redirect_uri", oAuthConfig.getRedirectUri());
         body.add("grant_type", "authorization_code");
 
