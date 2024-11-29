@@ -100,7 +100,9 @@ public class StorageService {
     }
 
     public Boolean isExistFile(Task task, String fileName) {
-        return filesRepository.existsByTask_IdAndName(task.getId(), fileName);
+        System.out.println(getFileNameWithoutExtension(fileName));
+        System.out.println(getFileExtension(fileName));
+        return filesRepository.existsByTask_IdAndNameAndType(task.getId(), getFileNameWithoutExtension(fileName), getFileExtension(fileName));
     }
 
 

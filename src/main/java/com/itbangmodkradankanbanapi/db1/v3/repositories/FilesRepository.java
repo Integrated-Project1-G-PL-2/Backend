@@ -16,7 +16,7 @@ public interface FilesRepository extends JpaRepository<FilesData, String> {
 
     int countByTaskId(int taskId);
 
-    Boolean existsByTask_IdAndName(int taskId, String name);
+    Boolean existsByTask_IdAndNameAndType(int taskId, String name, String type);
 
     List<FilesData> findAllByTask_Id(int taskId);
 }
