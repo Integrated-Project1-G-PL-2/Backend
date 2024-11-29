@@ -1,5 +1,6 @@
 package com.itbangmodkradankanbanapi.db2.services;
 
+import com.itbangmodkradankanbanapi.db1.v3.entities.LocalUser;
 import com.itbangmodkradankanbanapi.db2.entities.User;
 import com.itbangmodkradankanbanapi.db2.repositories.UserRepository;
 import io.jsonwebtoken.Claims;
@@ -90,6 +91,25 @@ public class JwtTokenUtil implements Serializable {
         claims.put("role", userDetails.getRole());
         claims.put("email", userDetails.getEmail());
         return doGenerateToken(claims, userDetails.getUsername());
+    }
+
+    public String generateTokenFromMicrosoft(LocalUser localUser) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("name", localUser.getName());
+        claims.put("oid", localUser.getOid());
+        claims.put("email", localUser.getEmail());
+        return doGenerateToken(claims, localUser.getUsername());
+    }
+
+    public String generateRefreshTokenFromMicrosoft(LocalUser localUser) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("oid", localUser.getOid());
+        return Jwts.builder().setIssuedAt(new Date(System.currentTimeMillis()))
+                .setClaims(claims)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000))
+                .setIssuer("https://intproj23.sit.kmutt.ac.th/pl2/")
+                .signWith(signatureAlgorithm, SECRET_KEY).compact();
     }
 
     public String generateRefreshToken(User userDetails) {

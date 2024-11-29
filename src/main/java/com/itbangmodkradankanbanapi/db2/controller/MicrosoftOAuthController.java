@@ -1,7 +1,11 @@
 package com.itbangmodkradankanbanapi.db2.controller;
 
+import com.itbangmodkradankanbanapi.db1.v3.entities.LocalUser;
 import com.itbangmodkradankanbanapi.db2.config.MicrosoftOAuthConfig;
-import com.itbangmodkradankanbanapi.db2.dto.MicrosoftLogin;
+import com.itbangmodkradankanbanapi.db2.dto.JwtResponse;
+import com.itbangmodkradankanbanapi.db2.services.JwtTokenUtil;
+import com.itbangmodkradankanbanapi.db2.services.MicrosoftAuthService;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
@@ -26,6 +30,12 @@ public class MicrosoftOAuthController {
     @Autowired
     private RestTemplate restTemplate;
 
+    @Autowired
+    private MicrosoftAuthService microsoftAuthService;
+
+    @Autowired
+    JwtTokenUtil jwtTokenUtil;
+
 
     @GetMapping("/login/microsoft")
     public void redirectToMicrosoft(HttpServletResponse response) throws IOException {
@@ -39,20 +49,19 @@ public class MicrosoftOAuthController {
         response.sendRedirect(authorizationUrl);
     }
 
-    @PostMapping("/callback/login")
-    public ResponseEntity<Map<String, Object>> handleCallback(@RequestBody MicrosoftLogin microsoftLogin) {
+    @GetMapping("/callback/login")
+    public void handleCallback(@RequestParam String code, HttpServletResponse response) throws IOException {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("client_id", oAuthConfig.getClientId());
         body.add("client_secret", oAuthConfig.getClientSecret());
-        body.add("code", microsoftLogin.getCode());
+        body.add("code", code);
         body.add("redirect_uri", oAuthConfig.getRedirectUri());
         body.add("grant_type", "authorization_code");
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
-
         ResponseEntity<Map> tokenResponse = restTemplate.exchange(
                 oAuthConfig.getTokenEndpoint(), HttpMethod.POST, request, Map.class);
 
@@ -61,7 +70,22 @@ public class MicrosoftOAuthController {
         }
 
         Map<String, Object> tokens = tokenResponse.getBody();
-        return ResponseEntity.ok(tokens);
+        LocalUser localUser = microsoftAuthService.handleMicrosoftToken(tokens);
+        String token = jwtTokenUtil.generateTokenFromMicrosoft(localUser);
+        String refreshToken = jwtTokenUtil.generateRefreshTokenFromMicrosoft(localUser);
+
+        Cookie accessTokenCookie = new Cookie("access_token", token);
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setMaxAge(3600);
+        response.addCookie(accessTokenCookie);
+
+        Cookie refreshTokenCookie = new Cookie("refresh_token", refreshToken);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(604800);
+        response.addCookie(refreshTokenCookie);
+
+        response.sendRedirect("http://localhost:5173/callback/login");
+
     }
 
 

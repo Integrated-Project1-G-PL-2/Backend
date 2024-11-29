@@ -4,7 +4,9 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itbangmodkradankanbanapi.db1.v3.entities.Board;
+import com.itbangmodkradankanbanapi.db1.v3.entities.LocalUser;
 import com.itbangmodkradankanbanapi.db1.v3.repositories.BoardRepository;
+import com.itbangmodkradankanbanapi.db1.v3.repositories.LocalUserRepository;
 import com.itbangmodkradankanbanapi.db1.v3.service.BoardService;
 import com.itbangmodkradankanbanapi.db2.config.MicrosoftOAuthConfig;
 import com.itbangmodkradankanbanapi.db2.entities.User;
@@ -42,6 +44,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private UserRepository userRepository;
     @Autowired
     private MicrosoftAuthService microsoftAuthService;
+    @Autowired
+    private LocalUserRepository localUserRepository;
 
 
     @Override
@@ -61,12 +65,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             if (requestTokenHeader.startsWith("Bearer ")) {
                 jwtToken = requestTokenHeader.substring(7);
                 try {
-                    if (microsoftAuthService.isMicrosoftIssuer(jwtToken) && microsoftAuthService.validateAccessToken(jwtToken)) {
-                        oid = microsoftAuthService.getOidFromAccessToken(jwtToken);
-
-                    } else {
-                        oid = jwtTokenUtil.getOidFromToken(jwtToken);
-                    }
+                    oid = jwtTokenUtil.getOidFromToken(jwtToken);
                 } catch (SecurityException | MalformedJwtException e) {
                     request.setAttribute("Error-Message", "Invalid JWT token");
                 } catch (ExpiredJwtException e) {
@@ -85,10 +84,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         if (oid != null) {
             User user = userRepository.findByOid(oid);
-            if (user == null) {
+            LocalUser localUser = localUserRepository.findByOid(oid);
+            if (user == null && localUser == null) {
                 request.setAttribute("Error-Message", "User not found");
             } else {
-                String username = user.getUsername();
+                String username = user == null ? localUser.getUsername() : user.getUsername();
                 try {
                     if (request.getServletPath().equals("/token")) {
                         chain.doFilter(request, response);
@@ -96,9 +96,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     }
                     UserDetails userDetails = null;
                     if (request.getServletPath().matches("^/v3/boards/[^/]+/invitation$")) {
-                        userDetails = this.jwtUserDetailsService.loadUserByUsernameForInvitation(username, jwtToken, boardId);
+                        userDetails = this.jwtUserDetailsService.loadUserByUsernameForInvitation(username, jwtToken, boardId, oid);
                     } else {
-                        userDetails = this.jwtUserDetailsService.loadUserByUsername(username, jwtToken, boardId);
+                        userDetails = this.jwtUserDetailsService.loadUserByUsername(username, jwtToken, boardId, oid);
                     }
                     if (jwtTokenUtil.validateToken(jwtToken, userDetails)) {
                         // token valid and userDetails not null (owner)

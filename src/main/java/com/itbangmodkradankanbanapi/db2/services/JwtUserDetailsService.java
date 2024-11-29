@@ -2,6 +2,7 @@ package com.itbangmodkradankanbanapi.db2.services;
 
 import com.itbangmodkradankanbanapi.db1.v3.entities.BoardOfUser;
 import com.itbangmodkradankanbanapi.db1.v3.entities.Invitation;
+import com.itbangmodkradankanbanapi.db1.v3.entities.LocalUser;
 import com.itbangmodkradankanbanapi.db1.v3.service.BoardService;
 import com.itbangmodkradankanbanapi.db1.v3.service.InvitationService;
 import com.itbangmodkradankanbanapi.db1.v3.service.UserLocalService;
@@ -49,12 +50,23 @@ public class JwtUserDetailsService implements UserDetailsService {
         return userDetails;
     }
 
-    public UserDetails loadUserByUsername(String userName, String token, String boardId) throws ItemNotFoundException {
+    public boolean existUser(String oid, String email) {
+        User user = userRepository.findUserByEmailAndOid(email, oid);
+        return user != null;
+    }
+
+    public User getUserByOidAndEmail(String oid, String email) {
+        return userRepository.findUserByEmailAndOid(email, oid);
+    }
+
+    public UserDetails loadUserByUsername(String userName, String token, String boardId, String oid) throws ItemNotFoundException {
         User user = userRepository.findByUsername(userName);
-        if (user == null) {
+        LocalUser localUser = userLocalService.getLocalUserByOid(oid);
+        if (user == null && localUser == null) {
             throw new ItemNotFoundException("User not found");
+        } else if (user != null) {
+            userLocalService.addLocalUser(user);
         }
-        userLocalService.addLocalUser(user);
         List<GrantedAuthority> roles = new ArrayList<>();
         // get , post without board id
         if (boardId == null) {
@@ -74,25 +86,27 @@ public class JwtUserDetailsService implements UserDetailsService {
         return new AuthUser(user.getUsername(), user.getPassword(), roles);
     }
 
-    public UserDetails loadUserByUsernameForInvitation(String userName, String token, String boardId) throws ItemNotFoundException {
+    public UserDetails loadUserByUsernameForInvitation(String userName, String token, String boardId, String oid) throws ItemNotFoundException {
         User user = userRepository.findByUsername(userName);
-        if (user == null) {
+        LocalUser localUser = userLocalService.getLocalUserByOid(oid);
+        if (user == null && localUser == null) {
             throw new ItemNotFoundException("User not found");
+        } else if (user != null) {
+            userLocalService.addLocalUser(user);
         }
-        userLocalService.addLocalUser(user);
         List<GrantedAuthority> roles = new ArrayList<>();
-
         Invitation invitation = invitationService.validateUserAndBoard(token, boardId);
         BoardOfUser boardOfUser = boardService.validateUserAndBoard(token, boardId);
         if (boardOfUser != null && boardService.isOwner(boardOfUser)) {
             roles.add(new SimpleGrantedAuthority("OWNER"));
         } else if (invitation != null) {
             roles.add(new SimpleGrantedAuthority("INVITATION"));
-        }else {
+        } else {
             throw new ItemNotFoundException("active invitation not found");
         }
         return new AuthUser(user.getUsername(), user.getPassword(), roles);
     }
+
 }
 
 
