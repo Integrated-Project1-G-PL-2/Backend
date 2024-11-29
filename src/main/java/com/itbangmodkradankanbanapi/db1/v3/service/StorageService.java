@@ -1,6 +1,7 @@
 package com.itbangmodkradankanbanapi.db1.v3.service;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
@@ -43,8 +44,17 @@ public class StorageService {
         String id = NanoId.generate(10);
         String fileName = id + "_" + file.getOriginalFilename();
         try {
+            ObjectMetadata metadata = new ObjectMetadata();
+            metadata.setContentType(file.getContentType());
+            metadata.setContentLength(file.getSize());
+
             String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8);
-            s3Client.putObject(new PutObjectRequest(bucketName, encodedFileName, fileObj));
+
+            PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, encodedFileName, fileObj);
+            putObjectRequest.setMetadata(metadata);
+
+
+            s3Client.putObject(putObjectRequest);
 
             String fileUrl = s3Client.getUrl(bucketName, encodedFileName).toString();
 
