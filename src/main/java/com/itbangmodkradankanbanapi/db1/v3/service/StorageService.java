@@ -19,9 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -40,10 +38,23 @@ public class StorageService {
 
     @Transactional
     public FilesData uploadFile(MultipartFile file, Task task) {
-        File fileObj = convertMultiPartFileToFile(file);
-        String id = NanoId.generate(10);
-        String fileName = id + "_" + file.getOriginalFilename();
         try {
+            // Debug original file content
+            System.out.println("Original File Content: " + new String(file.getBytes(), StandardCharsets.UTF_8));
+
+            File fileObj = convertMultiPartFileToFile(file);
+
+            // Debug converted file content
+            try (BufferedReader reader = new BufferedReader(new FileReader(fileObj))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    System.out.println("Converted File Content: " + line);
+                }
+            }
+
+            String id = NanoId.generate(10);
+            String fileName = id + "_" + file.getOriginalFilename();
+
             ObjectMetadata metadata = new ObjectMetadata();
             metadata.setContentType(file.getContentType());
             metadata.setContentLength(file.getSize());
@@ -53,11 +64,18 @@ public class StorageService {
             PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, encodedFileName, fileObj);
             putObjectRequest.setMetadata(metadata);
 
-
             s3Client.putObject(putObjectRequest);
 
-            String fileUrl = s3Client.getUrl(bucketName, encodedFileName).toString();
+            // Debug S3 uploaded file content
+            S3Object s3Object = s3Client.getObject(bucketName, encodedFileName);
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(s3Object.getObjectContent(), StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    System.out.println("S3 File Content: " + line);
+                }
+            }
 
+            String fileUrl = s3Client.getUrl(bucketName, encodedFileName).toString();
             fileObj.delete();
 
             String fileExtension = getFileExtension(file.getOriginalFilename());
@@ -74,6 +92,7 @@ public class StorageService {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
+
 
     public byte[] downloadFile(String fileName) {
         S3Object s3Object = s3Client.getObject(bucketName, fileName);
@@ -100,10 +119,11 @@ public class StorageService {
         try (FileOutputStream fos = new FileOutputStream(convertedFile)) {
             fos.write(file.getBytes());
         } catch (IOException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error converting file", e);
+            throw new RuntimeException("Error converting multipart file to file: " + e.getMessage());
         }
         return convertedFile;
     }
+
 
     public int countFilesInTask(Task task) {
         return filesRepository.countByTaskId(task.getId());
