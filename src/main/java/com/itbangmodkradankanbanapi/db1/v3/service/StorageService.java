@@ -58,6 +58,7 @@ public class StorageService {
             ObjectMetadata metadata = new ObjectMetadata();
             metadata.setContentType(file.getContentType());
             metadata.setContentLength(file.getSize());
+            metadata.setContentEncoding("UTF-8");
 
             String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8);
 
