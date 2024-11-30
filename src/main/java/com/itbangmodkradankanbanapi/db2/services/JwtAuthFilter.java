@@ -100,8 +100,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     } else {
                         userDetails = this.jwtUserDetailsService.loadUserByUsername(username, jwtToken, boardId, oid);
                     }
-                    if (jwtTokenUtil.validateToken(jwtToken, userDetails)) {
+                    if (user != null && jwtTokenUtil.validateToken(jwtToken, userDetails)) {
                         // token valid and userDetails not null (owner)
+                        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                        SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+                    } else if (localUser != null && jwtTokenUtil.validateTokenFromMicrosoft(jwtToken, userDetails)) {
                         UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                         SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
                     }

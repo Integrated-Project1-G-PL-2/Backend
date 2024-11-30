@@ -53,6 +53,7 @@ public class JwtTokenUtil implements Serializable {
 
     public User.UserRole getRoleFromToken(String token) {
         String roleString = getClaimFromToken(token, claims -> claims.get("role", String.class));
+        System.out.println(roleString);
         return User.UserRole.valueOf(roleString);
     }
 
@@ -148,8 +149,12 @@ public class JwtTokenUtil implements Serializable {
     public Boolean validateToken(String token, UserDetails userDetails) {
         final String username = getUsernameFromToken(token);
         final String oid = getOidFromToken(token);
-        User.UserRole role = getRoleFromToken(token);
-        return userRepository.existsByUsernameAndOidAndRole(username, oid, role) && !isTokenExpired(token) && (userDetails != null);
+        return userRepository.existsByUsernameAndOid(username, oid) && !isTokenExpired(token) && (userDetails != null);
+    }
+
+    public Boolean validateTokenFromMicrosoft(String token, UserDetails userDetails) {
+        final String oid = getOidFromToken(token);
+        return localUserRepository.existsByOid(oid) && !isTokenExpired(token) && (userDetails != null);
     }
 
     public Boolean validateRefreshToken(String token) {
