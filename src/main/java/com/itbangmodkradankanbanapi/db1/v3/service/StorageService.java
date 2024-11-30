@@ -38,45 +38,26 @@ public class StorageService {
 
     @Transactional
     public FilesData uploadFile(MultipartFile file, Task task) {
+        File fileObj = convertMultiPartFileToFile(file);
+        String id = NanoId.generate(10);
+        String fileName = id + "_" + file.getOriginalFilename();
         try {
-            // Debug original file content
-            System.out.println("Original File Content: " + new String(file.getBytes(), StandardCharsets.UTF_8));
-
-            File fileObj = convertMultiPartFileToFile(file);
-
-            // Debug converted file content
-            try (BufferedReader reader = new BufferedReader(new FileReader(fileObj))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    System.out.println("Converted File Content: " + line);
-                }
-            }
-
-            String id = NanoId.generate(10);
-            String fileName = id + "_" + file.getOriginalFilename();
-
             ObjectMetadata metadata = new ObjectMetadata();
-            metadata.setContentType(file.getContentType());
+            metadata.setContentType("text/plain; charset=utf-8");
             metadata.setContentLength(file.getSize());
-            metadata.setContentEncoding("UTF-8");
 
             String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8);
+
 
             PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, encodedFileName, fileObj);
             putObjectRequest.setMetadata(metadata);
 
+
             s3Client.putObject(putObjectRequest);
 
-            // Debug S3 uploaded file content
-            S3Object s3Object = s3Client.getObject(bucketName, encodedFileName);
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(s3Object.getObjectContent(), StandardCharsets.UTF_8))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    System.out.println("S3 File Content: " + line);
-                }
-            }
-
             String fileUrl = s3Client.getUrl(bucketName, encodedFileName).toString();
+
+
             fileObj.delete();
 
             String fileExtension = getFileExtension(file.getOriginalFilename());

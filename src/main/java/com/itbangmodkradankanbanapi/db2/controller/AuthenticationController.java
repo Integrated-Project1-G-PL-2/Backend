@@ -1,5 +1,7 @@
 package com.itbangmodkradankanbanapi.db2.controller;
 
+import com.itbangmodkradankanbanapi.db1.v3.entities.LocalUser;
+import com.itbangmodkradankanbanapi.db1.v3.repositories.LocalUserRepository;
 import com.itbangmodkradankanbanapi.db2.dto.JwtRequestUser;
 import com.itbangmodkradankanbanapi.db2.dto.JwtResponse;
 import com.itbangmodkradankanbanapi.db2.entities.User;
@@ -28,6 +30,11 @@ public class AuthenticationController {
     AuthenticationManager authenticationManager;
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    LocalUserRepository LocalUserRepository;
+    @Autowired
+    private LocalUserRepository localUserRepository;
 
     /* <FOR HTTP ONLY COOKIE>
     @PostMapping("/login")
@@ -78,8 +85,8 @@ public class AuthenticationController {
         return ResponseEntity.ok(new JwtResponse(token, refreshToken));
     }
 
-    @PostMapping("/token")
-    public ResponseEntity<Object> refreshToken(@RequestHeader("Authorization") String token) throws UnauthorizeAccessException {
+    @PostMapping("/token?msal=true")
+    public ResponseEntity<Object> refreshToken(@RequestHeader("Authorization") String token, @RequestParam boolean msal) throws UnauthorizeAccessException {
         try {
             String onlyToken = null;
             if (token.startsWith("Bearer ")) {
@@ -88,9 +95,16 @@ public class AuthenticationController {
             if (!jwtTokenUtil.validateRefreshToken(onlyToken) || onlyToken == null) {
                 throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "Invalid refresh-token");
             }
-            String oid = jwtTokenUtil.getOidFromToken(onlyToken);
-            User user = userRepository.findByOid(oid);
-            String newToken = jwtTokenUtil.generateToken(user);
+            String newToken = null;
+            if (msal) {
+                String oid = jwtTokenUtil.getOidFromToken(onlyToken);
+                LocalUser localUser = localUserRepository.findByOid(oid);
+                newToken = jwtTokenUtil.generateTokenFromMicrosoft(localUser);
+            } else {
+                String oid = jwtTokenUtil.getOidFromToken(onlyToken);
+                User user = userRepository.findByOid(oid);
+                newToken = jwtTokenUtil.generateToken(user);
+            }
             return ResponseEntity.ok(new JwtResponse(newToken));
         } catch (Exception e) {
             throw new UnauthorizeAccessException(HttpStatus.UNAUTHORIZED, "Invalid refresh-token");

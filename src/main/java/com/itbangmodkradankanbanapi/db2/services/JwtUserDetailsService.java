@@ -69,9 +69,12 @@ public class JwtUserDetailsService implements UserDetailsService {
         }
         List<GrantedAuthority> roles = new ArrayList<>();
         // get , post without board id
-        if (boardId == null) {
+        if (boardId == null && user != null) {
             roles.add(new SimpleGrantedAuthority("OWNER"));
             return new AuthUser(user.getUsername(), user.getPassword(), roles);
+        } else if (boardId == null && localUser != null) {
+            roles.add(new SimpleGrantedAuthority("OWNER"));
+            return new AuthUser(localUser.getUsername(), "", roles);
         }
         BoardOfUser boardOfUser = boardService.validateUserAndBoard(token, boardId);
         if (boardOfUser != null && boardService.isOwner(boardOfUser)) {

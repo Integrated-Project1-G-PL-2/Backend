@@ -1,6 +1,7 @@
 package com.itbangmodkradankanbanapi.db2.services;
 
 import com.itbangmodkradankanbanapi.db1.v3.entities.LocalUser;
+import com.itbangmodkradankanbanapi.db1.v3.repositories.LocalUserRepository;
 import com.itbangmodkradankanbanapi.db2.entities.User;
 import com.itbangmodkradankanbanapi.db2.repositories.UserRepository;
 import io.jsonwebtoken.Claims;
@@ -26,6 +27,8 @@ public class JwtTokenUtil implements Serializable {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private LocalUserRepository localUserRepository;
     @Value("${jwt.secret}")
     private String SECRET_KEY;
     @Value("#{${jwt.max-token-interval-hour}*60*60*1000}")
@@ -151,7 +154,7 @@ public class JwtTokenUtil implements Serializable {
 
     public Boolean validateRefreshToken(String token) {
         final String oid = getOidFromToken(token);
-        return userRepository.existsByOid(oid) && !isTokenExpired(token);
+        return (userRepository.existsByOid(oid) || localUserRepository.existsByOid(oid)) && !isTokenExpired(token);
     }
 
     private String getCookieValueByName(HttpServletRequest request, String name) {

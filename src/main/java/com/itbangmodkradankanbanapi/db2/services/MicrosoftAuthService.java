@@ -85,11 +85,12 @@ public class MicrosoftAuthService {
 
     public LocalUser handleMicrosoftToken(Map<String, Object> token) {
         String accessToken = (String) token.get("access_token");
+        System.out.println(accessToken);
         DecodedJWT jwt = JWT.decode(accessToken);
         String oid = jwt.getClaim("oid").asString();
         String email = jwt.getClaim("upn").asString();
         String name = jwt.getClaim("name").asString();
-        String username = "msal." + jwt.getClaim("given_name").asString();
+        String username = jwt.getClaim("given_name").asString();
         System.out.println(oid);
         if (!userDetailsService.existUser(oid, email)) {
             LocalUser newLocaluser = LocalUser.builder()
