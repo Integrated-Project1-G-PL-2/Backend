@@ -86,7 +86,7 @@ public class JwtUserDetailsService implements UserDetailsService {
         } else if (boardService.isPublicAccessibility(boardService.getBoardById(boardId))) {
             roles.add(new SimpleGrantedAuthority("PUBLIC-ACCESS"));
         }
-        return new AuthUser(user.getUsername(), user.getPassword(), roles);
+        return new AuthUser(localUser.getUsername(), "", roles);
     }
 
     public UserDetails loadUserByUsernameForInvitation(String userName, String token, String boardId, String oid) throws ItemNotFoundException {

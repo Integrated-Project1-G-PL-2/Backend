@@ -85,7 +85,6 @@ public class MicrosoftAuthService {
 
     public LocalUser handleMicrosoftToken(Map<String, Object> token) {
         String accessToken = (String) token.get("access_token");
-        System.out.println(accessToken);
         DecodedJWT jwt = JWT.decode(accessToken);
         String oid = jwt.getClaim("oid").asString();
         String email = jwt.getClaim("upn").asString();
