@@ -311,7 +311,7 @@ public class BoardService {
     }
 
     public LocalUser getLocalUserFromToken(String token) {
-        User user = getUserFromToken(token);
+        LocalUser user = getUserFromToken(token);
         String userOid = user.getOid();
         return localUserRepository.findById(userOid).orElseThrow(() -> new ItemNotFoundException("User not found"));
     }
@@ -332,12 +332,12 @@ public class BoardService {
         return localUserRepository.findById(oid);
     }
 
-    private User getUserFromToken(String token) {
+    private LocalUser getUserFromToken(String token) {
         if (token.startsWith("Bearer ")) {
             token = token.substring(7);
         }
-        String username = jwtTokenUtil.getUsernameFromToken(token);
-        return userRepository.findByUsername(username);
+        String oid = jwtTokenUtil.getOidFromToken(token);
+        return localUserRepository.findByOid(oid);
     }
 
     public boolean isPublicAccessibility(Board board) {
