@@ -11,6 +11,7 @@ import com.itbangmodkradankanbanapi.db1.v3.entities.Task;
 import com.itbangmodkradankanbanapi.db1.v3.repositories.FilesRepository;
 import io.viascom.nanoid.NanoId;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -41,13 +42,21 @@ public class StorageService {
         File fileObj = convertMultiPartFileToFile(file);
         String id = NanoId.generate(10);
         String fileName = id + "_" + file.getOriginalFilename();
+
         try {
+            Tika tika = new Tika();
+            String mimeType = tika.detect(fileObj);
+
+            if (mimeType.equals("text/plain")) {
+                mimeType = mimeType + "; charset=utf-8";
+            }
+
             ObjectMetadata metadata = new ObjectMetadata();
-            metadata.setContentType("text/plain; charset=utf-8");
+            metadata.setContentType(mimeType);
             metadata.setContentLength(file.getSize());
 
-            String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8);
 
+            String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8);
 
             PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, encodedFileName, fileObj);
             putObjectRequest.setMetadata(metadata);
