@@ -1,5 +1,7 @@
 package com.itbangmodkradankanbanapi.db2.services;
 
+import com.itbangmodkradankanbanapi.db1.v3.entities.LocalUser;
+import com.itbangmodkradankanbanapi.db1.v3.repositories.LocalUserRepository;
 import com.itbangmodkradankanbanapi.db2.entities.User;
 import com.itbangmodkradankanbanapi.db2.repositories.UserRepository;
 import io.jsonwebtoken.Claims;
@@ -25,6 +27,8 @@ public class JwtTokenUtil implements Serializable {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private LocalUserRepository localUserRepository;
     @Value("${jwt.secret}")
     private String SECRET_KEY;
     @Value("#{${jwt.max-token-interval-hour}*60*60*1000}")
@@ -49,6 +53,7 @@ public class JwtTokenUtil implements Serializable {
 
     public User.UserRole getRoleFromToken(String token) {
         String roleString = getClaimFromToken(token, claims -> claims.get("role", String.class));
+        System.out.println(roleString);
         return User.UserRole.valueOf(roleString);
     }
 
@@ -92,6 +97,25 @@ public class JwtTokenUtil implements Serializable {
         return doGenerateToken(claims, userDetails.getUsername());
     }
 
+    public String generateTokenFromMicrosoft(LocalUser localUser) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("name", localUser.getName());
+        claims.put("oid", localUser.getOid());
+        claims.put("email", localUser.getEmail());
+        return doGenerateToken(claims, localUser.getUsername());
+    }
+
+    public String generateRefreshTokenFromMicrosoft(LocalUser localUser) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("oid", localUser.getOid());
+        return Jwts.builder().setIssuedAt(new Date(System.currentTimeMillis()))
+                .setClaims(claims)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000))
+                .setIssuer("https://intproj23.sit.kmutt.ac.th/pl2/")
+                .signWith(signatureAlgorithm, SECRET_KEY).compact();
+    }
+
     public String generateRefreshToken(User userDetails) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("oid", userDetails.getOid());
@@ -125,13 +149,17 @@ public class JwtTokenUtil implements Serializable {
     public Boolean validateToken(String token, UserDetails userDetails) {
         final String username = getUsernameFromToken(token);
         final String oid = getOidFromToken(token);
-        User.UserRole role = getRoleFromToken(token);
-        return userRepository.existsByUsernameAndOidAndRole(username, oid, role) && !isTokenExpired(token) && (userDetails != null);
+        return userRepository.existsByUsernameAndOid(username, oid) && !isTokenExpired(token) && (userDetails != null);
+    }
+
+    public Boolean validateTokenFromMicrosoft(String token, UserDetails userDetails) {
+        final String oid = getOidFromToken(token);
+        return localUserRepository.existsByOid(oid) && !isTokenExpired(token) && (userDetails != null);
     }
 
     public Boolean validateRefreshToken(String token) {
         final String oid = getOidFromToken(token);
-        return userRepository.existsByOid(oid) && !isTokenExpired(token);
+        return (userRepository.existsByOid(oid) || localUserRepository.existsByOid(oid)) && !isTokenExpired(token);
     }
 
     private String getCookieValueByName(HttpServletRequest request, String name) {

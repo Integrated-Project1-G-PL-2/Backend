@@ -1,6 +1,7 @@
 package com.itbangmodkradankanbanapi.db1.v3.service;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
@@ -10,6 +11,7 @@ import com.itbangmodkradankanbanapi.db1.v3.entities.Task;
 import com.itbangmodkradankanbanapi.db1.v3.repositories.FilesRepository;
 import io.viascom.nanoid.NanoId;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -18,9 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -42,11 +42,30 @@ public class StorageService {
         File fileObj = convertMultiPartFileToFile(file);
         String id = NanoId.generate(10);
         String fileName = id + "_" + file.getOriginalFilename();
+
         try {
+            Tika tika = new Tika();
+            String mimeType = tika.detect(fileObj);
+
+            if (mimeType.equals("text/plain")) {
+                mimeType = mimeType + "; charset=utf-8";
+            }
+
+            ObjectMetadata metadata = new ObjectMetadata();
+            metadata.setContentType(mimeType);
+            metadata.setContentLength(file.getSize());
+
+
             String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8);
-            s3Client.putObject(new PutObjectRequest(bucketName, encodedFileName, fileObj));
+
+            PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, encodedFileName, fileObj);
+            putObjectRequest.setMetadata(metadata);
+
+
+            s3Client.putObject(putObjectRequest);
 
             String fileUrl = s3Client.getUrl(bucketName, encodedFileName).toString();
+
 
             fileObj.delete();
 
@@ -65,6 +84,7 @@ public class StorageService {
         }
     }
 
+
     public byte[] downloadFile(String fileName) {
         S3Object s3Object = s3Client.getObject(bucketName, fileName);
         S3ObjectInputStream inputStream = s3Object.getObjectContent();
@@ -76,6 +96,7 @@ public class StorageService {
         }
     }
 
+    @Transactional
     public void deleteFile(FilesData fileData) {
         String fileUrl = fileData.getPath();
         String fileName = fileUrl.substring(fileUrl.lastIndexOf("/") + 1);
@@ -89,17 +110,20 @@ public class StorageService {
         try (FileOutputStream fos = new FileOutputStream(convertedFile)) {
             fos.write(file.getBytes());
         } catch (IOException e) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error converting file", e);
+            throw new RuntimeException("Error converting multipart file to file: " + e.getMessage());
         }
         return convertedFile;
     }
+
 
     public int countFilesInTask(Task task) {
         return filesRepository.countByTaskId(task.getId());
     }
 
     public Boolean isExistFile(Task task, String fileName) {
-        return filesRepository.existsByTask_IdAndName(task.getId(), fileName);
+        System.out.println(getFileNameWithoutExtension(fileName));
+        System.out.println(getFileExtension(fileName));
+        return filesRepository.existsByTask_IdAndNameAndType(task.getId(), getFileNameWithoutExtension(fileName), getFileExtension(fileName));
     }
 
 

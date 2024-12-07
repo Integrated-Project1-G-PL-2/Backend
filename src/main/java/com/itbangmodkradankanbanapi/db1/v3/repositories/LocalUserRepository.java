@@ -9,4 +9,6 @@ public interface LocalUserRepository extends JpaRepository<LocalUser, String> {
     LocalUser findByOid(String oid);
 
     Optional<LocalUser> findByEmail(String email);
+
+    boolean existsByOid(String oid);
 }

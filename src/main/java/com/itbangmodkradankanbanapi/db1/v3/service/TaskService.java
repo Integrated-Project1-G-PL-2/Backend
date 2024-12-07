@@ -20,6 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -127,7 +130,11 @@ public class TaskService {
 
     public TaskDTO deleteFileFormTask1(String boardId, int id, String fileName) {
         Task taskV2 = findTaskById(boardId, id);
-        FilesData existFile = storageService.getAllFile(taskV2).stream().filter(fileData -> fileData.getPath().substring(fileData.getPath().lastIndexOf("/") + 1).equals(fileName)).findFirst().orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "File doesn't exist"));
+        FilesData existFile = storageService.getAllFile(taskV2).stream().filter(fileData -> {
+            String encodedFileName = URLEncoder.encode(fileName, StandardCharsets.UTF_8);
+            String decodeFileName = URLDecoder.decode(fileData.getPath().substring(fileData.getPath().lastIndexOf("/") + 1), StandardCharsets.UTF_8);
+            return encodedFileName.equals(decodeFileName);
+        }).findFirst().orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "File doesn't exist"));
         storageService.deleteFile(existFile);
         taskV2.setFilesDataList(new HashSet<>(storageService.getAllFile(taskV2)));
         return mapper.map(taskV2, TaskDTO.class);
@@ -135,7 +142,7 @@ public class TaskService {
 
     private Set<FilesData> uploadFileInTask(Task task, MultipartFile[] files, Boolean isEditing) {
         if (files != null) {
-            Set<FilesData> resultFileData = new HashSet<>();
+            Set<FilesData> resultFileData = new HashSet<>(storageService.getAllFile(task));
             int amountOfFile = storageService.countFilesInTask(task);
             System.out.println("amount of file = " + amountOfFile);
             if (files.length + amountOfFile > 10) {

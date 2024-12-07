@@ -6,6 +6,7 @@ import com.itbangmodkradankanbanapi.db2.entities.User;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserLocalService {
@@ -19,6 +20,7 @@ public class UserLocalService {
         this.mapper = mapper;
     }
 
+    @Transactional
     public LocalUser addLocalUser(User user) {
         LocalUser localUser = repository.findByOid(user.getOid());
         if (localUser == null) {
@@ -26,6 +28,15 @@ public class UserLocalService {
             return repository.save(newLocalUser);
         }
         return null;
+    }
+
+    @Transactional
+    public LocalUser addLocalUser(LocalUser localUser) {
+        return repository.save(localUser);
+    }
+
+    public LocalUser getLocalUserByOid(String oid) {
+        return repository.findByOid(oid);
     }
 
 }
