@@ -15,6 +15,7 @@ public class MicrosoftOAuthConfig {
     private String tokenEndpoint;
     private String meEndpoint;
     private String tenantId;
+    private String frontSite;
 
     public static MicrosoftOAuthConfig getInstance() {
         return new MicrosoftOAuthConfig();

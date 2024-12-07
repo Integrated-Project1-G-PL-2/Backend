@@ -84,7 +84,7 @@ public class MicrosoftOAuthController {
         refreshTokenCookie.setMaxAge(604800);
         response.addCookie(refreshTokenCookie);
 
-        response.sendRedirect("http://localhost:5173/callback/login");
+        response.sendRedirect(oAuthConfig.getFrontSite() + "/callback/login");
 
     }
 
