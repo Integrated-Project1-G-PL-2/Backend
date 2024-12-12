@@ -85,7 +85,7 @@ public class AuthenticationController {
         return ResponseEntity.ok(new JwtResponse(token, refreshToken));
     }
 
-    @PostMapping("/token?msal=true")
+    @PostMapping("/token")
     public ResponseEntity<Object> refreshToken(@RequestHeader("Authorization") String token, @RequestParam boolean msal) throws UnauthorizeAccessException {
         try {
             String onlyToken = null;
