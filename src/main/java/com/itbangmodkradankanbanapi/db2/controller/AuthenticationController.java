@@ -86,7 +86,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/token")
-    public ResponseEntity<Object> refreshToken(@RequestHeader("Authorization") String token, @RequestParam boolean msal) throws UnauthorizeAccessException {
+    public ResponseEntity<Object> refreshToken(@RequestHeader("Authorization") String token, @RequestParam(required = false) boolean msal) throws UnauthorizeAccessException {
         try {
             String onlyToken = null;
             if (token.startsWith("Bearer ")) {
