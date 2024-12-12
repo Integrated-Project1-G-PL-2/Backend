@@ -57,9 +57,6 @@ public class TaskController {
             if (files.length > 10) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Maximum file count is 10");
             }
-            files = Arrays.stream(files)
-                    .filter(file -> !file.isEmpty())
-                    .toArray(MultipartFile[]::new);
             if (files.length > 0) {
                 return ResponseEntity.status(HttpStatus.OK).body(boardService.editTaskOfBoard(task, id, taskId, files));
             }
